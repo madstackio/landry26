@@ -1,0 +1,112 @@
+---
+import type { Section } from "../../lib/cms";
+
+interface Props {
+  section: Section;
+}
+
+const { data } = Astro.props.section;
+const testimonials: { quote: string; author?: string; role?: string; avatar?: string }[] =
+  Array.isArray(data.testimonials) ? data.testimonials : [];
+---
+
+<section class="testimonials">
+  <div class="container">
+    {
+      data.heading && (
+        <div class="head">
+          <div class="eyebrow">Resident Stories</div>
+          <h2 set:html={data.heading} />
+        </div>
+      )
+    }
+    <div class="grid">
+      {
+        testimonials.map((t) => (
+          <figure class="card">
+            <blockquote>“{t.quote}”</blockquote>
+            {(t.author || t.role) && (
+              <figcaption>
+                {t.avatar && <img src={t.avatar} alt="" class="avatar" loading="lazy" />}
+                <span>
+                  {t.author && <span class="author">{t.author}</span>}
+                  {t.role && <span class="role">{t.role}</span>}
+                </span>
+              </figcaption>
+            )}
+          </figure>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .testimonials {
+    padding: 104px 0;
+  }
+
+  .head {
+    max-width: 560px;
+    margin-bottom: 44px;
+  }
+
+  h2 {
+    font-size: 44px;
+    margin: 14px 0 0;
+    text-wrap: pretty;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+  }
+
+  .card {
+    margin: 0;
+    background: var(--white);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  blockquote {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 21px;
+    line-height: 1.45;
+    color: var(--navy-800);
+    flex: 1;
+  }
+
+  figcaption {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .author {
+    display: block;
+    font-weight: var(--weight-semibold);
+    color: var(--navy-900);
+    font-size: 15px;
+  }
+
+  .role {
+    display: block;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+</style>

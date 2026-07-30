@@ -1,0 +1,76 @@
+---
+import type { Globals, Section } from "../lib/cms";
+import { anchorIdsForSections } from "../lib/anchors";
+import Hero from "./sections/Hero.astro";
+import TextBlock from "./sections/TextBlock.astro";
+import AmenitiesGrid from "./sections/AmenitiesGrid.astro";
+import ImageGallery from "./sections/ImageGallery.astro";
+import CtaBanner from "./sections/CtaBanner.astro";
+import Faq from "./sections/Faq.astro";
+import Testimonials from "./sections/Testimonials.astro";
+import FeatureGrid from "./sections/FeatureGrid.astro";
+import FloorPlanGrid from "./sections/FloorPlanGrid.astro";
+import AvailabilityList from "./sections/AvailabilityList.astro";
+import SpecialsStrip from "./sections/SpecialsStrip.astro";
+import FormSection from "./sections/FormSection.astro";
+import WelcomeHome from "./sections/WelcomeHome.astro";
+import DayPanels from "./sections/DayPanels.astro";
+import LifeAtTheLandry from "./sections/LifeAtTheLandry.astro";
+
+interface Props {
+  sections: Section[];
+  globals: Globals;
+  locale?: string | null;
+}
+
+const { sections, globals, locale = null } = Astro.props;
+const anchorIds = anchorIdsForSections(sections);
+
+const BY_TYPE: Record<string, any> = {
+  "hero-section": Hero,
+  "hero-section-custom": Hero,
+  "welcome-home": WelcomeHome,
+  "a-day-at-the-landry": DayPanels,
+  "life-at-the-landry": LifeAtTheLandry,
+  "text-block": TextBlock,
+  "amenities-grid": AmenitiesGrid,
+  "image-gallery": ImageGallery,
+  "cta-banner": CtaBanner,
+  faq: Faq,
+  testimonials: Testimonials,
+  "feature-grid": FeatureGrid,
+  "floor-plan-grid": FloorPlanGrid,
+  "availability-list": AvailabilityList,
+  "specials-strip": SpecialsStrip,
+  "form-section": FormSection,
+};
+
+// Live sections are routed by their data source, not their slug — orgs can
+// duplicate a live built-in under a custom slug (see LUCIDOS.md).
+const BY_SOURCE: Record<string, any> = {
+  floor_plans: FloorPlanGrid,
+  availability: AvailabilityList,
+  specials: SpecialsStrip,
+  form: FormSection,
+};
+
+function componentFor(section: Section) {
+  if (section.live && section.source && BY_SOURCE[section.source]) {
+    return BY_SOURCE[section.source];
+  }
+  // Unknown types render null so new CMS types never break the site.
+  return BY_TYPE[section.type] ?? null;
+}
+---
+
+{
+  sections.map((section) => {
+    const Component = componentFor(section);
+    if (!Component) return null;
+    return (
+      <div data-lucid-section={section.id} id={anchorIds.get(section.id)}>
+        <Component section={section} globals={globals} locale={locale} />
+      </div>
+    );
+  })
+}

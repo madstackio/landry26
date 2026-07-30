@@ -1,0 +1,234 @@
+---
+import type { FormSchema, Globals, Section } from "../../lib/cms";
+import CmsForm from "../CmsForm.astro";
+
+interface Props {
+  section: Section;
+  globals: Globals;
+}
+
+const { section, globals } = Astro.props;
+const { data } = section;
+const contact = globals.contact ?? {};
+const phoneHref = contact.phone ? `tel:${contact.phone.replace(/[^\d+]/g, "")}` : null;
+
+// The form arrives as a field-level live block: { source: "form", form_id, form }.
+// Check live_fields when present, otherwise scan the data keys — and treat a
+// missing/inactive form (form: null) as "hide the form block".
+function resolveForm(): FormSchema | null {
+  const keys = section.live_fields?.length ? section.live_fields : Object.keys(data);
+  for (const key of keys) {
+    const value = (data as Record<string, any>)[key];
+    if (value && typeof value === "object" && value.source === "form") {
+      return (value.form as FormSchema | null) ?? null;
+    }
+  }
+  return null;
+}
+const form = resolveForm();
+
+const addressLine = [
+  contact.address_line1,
+  contact.address_line2,
+  [contact.city, contact.state].filter(Boolean).join(", ") + (contact.zip ? ` ${contact.zip}` : ""),
+]
+  .filter((l) => l && l.trim())
+  .join(", ");
+
+const officeHours = (contact.office_hours ?? "")
+  .split(/\r?\n/)
+  .map((l) => l.trim())
+  .filter(Boolean);
+---
+
+<section class="tour">
+  <div class="container grid" class:list={{ "no-form": !form }}>
+    <div>
+      <div class="map" data-landry-map></div>
+      <div class="eyebrow head-eyebrow">Schedule a Private Tour</div>
+      {data.heading ? <h2 set:html={data.heading} /> : <h2>See it in person.</h2>}
+      {data.intro && <div class="richtext intro" set:html={data.intro} />}
+      <div class="facts">
+        {
+          addressLine && (
+            <div class="fact">
+              <span class="fact-icon">
+                <i data-lucide="map-pin" style="width:20px;height:20px" />
+              </span>
+              <span>{addressLine}</span>
+            </div>
+          )
+        }
+        {
+          contact.phone && (
+            <div class="fact">
+              <span class="fact-icon">
+                <i data-lucide="phone" style="width:20px;height:20px" />
+              </span>
+              <a href={phoneHref} class="phone">
+                {contact.phone}
+              </a>
+            </div>
+          )
+        }
+        {
+          officeHours.length > 0 && (
+            <div class="fact">
+              <span class="fact-icon">
+                <i data-lucide="clock" style="width:20px;height:20px" />
+              </span>
+              <span class="hours">
+                {officeHours.map((line) => (
+                  <span class="hours-line">{line}</span>
+                ))}
+              </span>
+            </div>
+          )
+        }
+      </div>
+    </div>
+    {
+      form && (
+        <div>
+          <CmsForm form={form} fallbackRecaptchaKey={globals.recaptcha_site_key} />
+        </div>
+      )
+    }
+  </div>
+</section>
+
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H"
+  crossorigin="anonymous"
+/>
+<script
+  is:inline
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH"
+  crossorigin="anonymous"
+></script>
+
+<style>
+  .tour {
+    padding: 112px 0;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 80px;
+    align-items: start;
+  }
+
+  .grid.no-form {
+    grid-template-columns: 1fr;
+    max-width: 720px;
+  }
+
+  .map {
+    width: 100%;
+    height: 250px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--cream-200);
+    overflow: hidden;
+    position: relative;
+    z-index: 0;
+    background: var(--navy-100);
+  }
+
+  .head-eyebrow {
+    margin-top: 28px;
+  }
+
+  h2 {
+    font-size: 46px;
+    margin: 16px 0 14px;
+  }
+
+  .intro {
+    font-size: 17px;
+    line-height: 1.65;
+    color: var(--charcoal-700);
+    max-width: 420px;
+    margin: 0 0 36px;
+  }
+
+  .facts {
+    display: grid;
+    gap: 14px;
+    font-size: 15px;
+    color: var(--charcoal-700);
+    margin-top: 24px;
+  }
+
+  .fact {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .fact-icon {
+    color: var(--navy-300);
+    flex: none;
+    margin-top: 1px;
+    display: inline-flex;
+  }
+
+  .phone {
+    color: var(--navy-700);
+    font-weight: var(--weight-semibold);
+  }
+
+  .hours {
+    display: grid;
+    gap: 4px;
+  }
+
+  .hours-line {
+    display: block;
+  }
+
+  @media (max-width: 920px) {
+    .grid {
+      grid-template-columns: 1fr;
+      gap: 48px;
+    }
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    // The Landry — 2505 Thomason Cir, Arlington, TX 76006
+    var LAT = 32.77587;
+    var LNG = -97.066059;
+    function init() {
+      var L = window.L;
+      if (!L) return setTimeout(init, 100);
+      document.querySelectorAll("[data-landry-map]").forEach(function (el) {
+        if (el.dataset.mapReady) return;
+        el.dataset.mapReady = "1";
+        var map = L.map(el, { scrollWheelZoom: false, fadeAnimation: false }).setView([LAT, LNG], 13);
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: "© OpenStreetMap contributors",
+        }).addTo(map);
+        var icon = L.divIcon({
+          className: "",
+          html: '<div style="width:18px;height:18px;border-radius:50%;background:#154766;border:3px solid #FAF8F5;box-shadow:0 2px 8px rgba(11,44,64,.45)"></div>',
+          iconSize: [18, 18],
+          iconAnchor: [9, 9],
+        });
+        L.marker([LAT, LNG], { icon })
+          .addTo(map)
+          .bindPopup(
+            '<span style="font-family:Marcellus,Georgia,serif;font-size:15px;color:#0B2C40">The Landry</span><br>2505 Thomason Cir'
+          );
+        setTimeout(function () {
+          map.invalidateSize();
+        }, 300);
+      });
+    }
+    init();
+  })();
+</script>

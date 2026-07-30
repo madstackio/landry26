@@ -1,0 +1,293 @@
+---
+import type { FloorPlan, Section } from "../../lib/cms";
+
+interface Props {
+  section: Section;
+  locale?: string | null;
+}
+
+const { section, locale = null } = Astro.props;
+const { data } = section;
+const plans: FloorPlan[] = Array.isArray(data.items) ? data.items : [];
+const count: number = typeof data.count === "number" ? data.count : plans.length;
+
+const fmtLocale = locale || "en-US";
+const money = new Intl.NumberFormat(fmtLocale, {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0,
+});
+
+const BED_LABELS: Record<number, string> = {
+  0: "Studio",
+  1: "One Bedroom",
+  2: "Two Bedroom",
+  3: "Three Bedroom",
+  4: "Four Bedroom",
+};
+
+function bedLabel(beds: number) {
+  return BED_LABELS[beds] ?? `${beds} Bedroom`;
+}
+
+function sqft(plan: FloorPlan) {
+  if (!plan.sqft_min) return null;
+  return plan.sqft_max && plan.sqft_max !== plan.sqft_min
+    ? `${plan.sqft_min}–${plan.sqft_max} sq ft`
+    : `${plan.sqft_min} sq ft`;
+}
+
+const bedOptions = [...new Set(plans.map((p) => p.bedrooms))].sort((a, b) => a - b);
+const showFilters = bedOptions.length > 1;
+---
+
+<section class="plans">
+  <div class="container">
+    <div class="head">
+      <div>
+        <div class="eyebrow">Residences</div>
+        {data.heading ? <h2 set:html={data.heading} /> : <h2>Find the one that fits.</h2>}
+        {data.intro && <div class="richtext intro" set:html={data.intro} />}
+      </div>
+      {
+        showFilters && (
+          <div class="filters" data-plan-filters>
+            <button class="chip is-selected" data-beds="all">
+              All Plans
+            </button>
+            {bedOptions.map((b) => (
+              <button class="chip" data-beds={String(b)}>
+                {bedLabel(b)}
+              </button>
+            ))}
+          </div>
+        )
+      }
+    </div>
+    {
+      plans.length > 0 ? (
+        <div class="table" data-plan-table>
+          {plans.map((p) => {
+            const photo = p.photos?.[0];
+            return (
+              <div class="row" data-beds={String(p.bedrooms)}>
+                {photo ? (
+                  <div
+                    class="thumb"
+                    role="img"
+                    aria-label={photo.alt || p.name}
+                    style={`background-image:url('${photo.url}')`}
+                  />
+                ) : (
+                  <div class="thumb" />
+                )}
+                <div>
+                  <div class="name">{p.name}</div>
+                  <div class="eyebrow type">{bedLabel(p.bedrooms)}</div>
+                </div>
+                <div class="meta">
+                  {p.bedrooms === 0 ? "Studio" : `${p.bedrooms} bed`} · {p.bathrooms} bath
+                </div>
+                <div class="sqft">{sqft(p)}</div>
+                <div class="price">
+                  {p.starting_rent ? (
+                    <span>
+                      From {money.format(p.starting_rent)}
+                      <span class="permo">/mo</span>
+                    </span>
+                  ) : (
+                    <span class="permo">Call for pricing</span>
+                  )}
+                  {p.available_count === 0 && <span class="waitlist">Join the waitlist</span>}
+                </div>
+                <a href="#schedule-a-tour" class="btn btn--sm btn--secondary">
+                  Tour This Plan
+                </a>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <p class="empty">
+          Floor plan details are being updated — call the leasing office and we'll walk you through
+          what's available.
+        </p>
+      )
+    }
+    {count > plans.length && <p class="note">Showing {plans.length} of {count} floor plans.</p>}
+    <p class="note">
+      Pricing reflects today's availability and can change daily. Your leasing team will confirm
+      exact homes and move-in dates on your tour.
+    </p>
+  </div>
+</section>
+
+<style>
+  .plans {
+    background: var(--cream-100);
+    padding: 104px 0;
+  }
+
+  .head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 32px;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+  }
+
+  h2 {
+    font-size: 44px;
+    margin: 14px 0 0;
+  }
+
+  .intro {
+    font-size: 16px;
+    color: var(--text-muted);
+    max-width: 480px;
+    margin-top: 12px;
+  }
+
+  .filters {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .table {
+    background: var(--white);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: 8px 32px;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 110px 1.5fr 1fr 0.9fr 1.1fr auto;
+    gap: 24px;
+    align-items: center;
+    padding: 22px 0;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .row:first-child {
+    border-top: none;
+  }
+
+  .row[hidden] {
+    display: none;
+  }
+
+  .thumb {
+    width: 110px;
+    height: 76px;
+    border-radius: var(--radius-md);
+    background-color: var(--navy-100);
+    background-size: cover;
+    background-position: center;
+  }
+
+  .name {
+    font-family: var(--font-display);
+    font-size: 25px;
+    color: var(--navy-900);
+  }
+
+  .type {
+    font-size: 12px;
+    margin-top: 3px;
+  }
+
+  .meta {
+    font-size: 15px;
+    color: var(--slate-600);
+  }
+
+  .sqft {
+    font-size: 15px;
+    color: var(--charcoal-700);
+  }
+
+  .price {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-weight: var(--weight-bold);
+    color: var(--navy-700);
+    font-size: 19px;
+  }
+
+  .permo {
+    font-weight: var(--weight-regular);
+    color: var(--slate-600);
+    font-size: 14px;
+  }
+
+  .waitlist {
+    font-size: 12px;
+    font-weight: var(--weight-semibold);
+    color: var(--warning-600);
+    background: var(--warning-100);
+    border-radius: var(--radius-pill);
+    padding: 4px 10px;
+  }
+
+  .note {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin: 18px 4px 0;
+  }
+
+  .empty {
+    font-size: 16px;
+    color: var(--text-muted);
+    background: var(--white);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 40px;
+    text-align: center;
+  }
+
+  @media (max-width: 920px) {
+    .row {
+      grid-template-columns: 90px 1fr auto;
+    }
+
+    .meta,
+    .sqft {
+      display: none;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .row {
+      grid-template-columns: 1fr auto;
+    }
+
+    .thumb {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-plan-filters]").forEach((filters) => {
+    const table = filters.closest("section")?.querySelector<HTMLElement>("[data-plan-table]");
+    if (!table) return;
+    filters.querySelectorAll<HTMLButtonElement>(".chip").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        filters.querySelectorAll(".chip").forEach((c) => c.classList.remove("is-selected"));
+        chip.classList.add("is-selected");
+        const beds = chip.dataset.beds;
+        table.querySelectorAll<HTMLElement>(".row").forEach((row) => {
+          const show = beds === "all" || row.dataset.beds === beds;
+          if (show) row.removeAttribute("hidden");
+          else row.setAttribute("hidden", "");
+        });
+      });
+    });
+  });
+</script>

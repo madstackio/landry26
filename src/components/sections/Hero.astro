@@ -1,0 +1,152 @@
+---
+import type { Section } from "../../lib/cms";
+
+interface Props {
+  section: Section;
+}
+
+// Handles both the built-in `hero-section` and the property's
+// `hero-section-custom` (adds a `byline` eyebrow above the heading).
+const { data } = Astro.props.section;
+const alignment: string = data.alignment || "left";
+const overlay = data.overlay !== false && data.overlay !== 0;
+const buttons: { label: string; url: string; style?: string }[] = Array.isArray(data.buttons)
+  ? data.buttons
+  : [];
+
+function btnClass(style?: string) {
+  if (style === "secondary") return "btn btn--lg btn--inverse";
+  if (style === "ghost") return "btn btn--lg btn--ghost";
+  return "btn btn--lg";
+}
+---
+
+<section class="hero" data-align={alignment}>
+  {
+    data.background_video ? (
+      <video
+        class="media"
+        src={data.background_video}
+        poster={data.background_image}
+        autoplay
+        muted
+        loop
+        playsinline
+      />
+    ) : (
+      data.background_image && <img class="media kenburns" src={data.background_image} alt="" />
+    )
+  }
+  {overlay && <div class="scrim" />}
+  <div class="content">
+    <div class="container inner">
+      {data.byline && <div class="eyebrow byline">{data.byline}</div>}
+      <h1 set:html={data.heading} />
+      {data.subheading && <p class="subheading" set:html={data.subheading} />}
+      {
+        buttons.length > 0 && (
+          <div class="buttons">
+            {buttons.map((b) => (
+              <a href={b.url} class={btnClass(b.style)}>
+                {b.label}
+              </a>
+            ))}
+          </div>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    height: 88vh;
+    min-height: 640px;
+    overflow: hidden;
+  }
+
+  .media {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .kenburns {
+    animation: kenburns 16s ease-out forwards;
+  }
+
+  .scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(11, 44, 64, 0.18) 0%,
+      rgba(11, 44, 64, 0.3) 45%,
+      rgba(11, 44, 64, 0.82) 100%
+    );
+  }
+
+  .content {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .inner {
+    width: 100%;
+    padding-bottom: 84px;
+  }
+
+  .hero[data-align="center"] .inner {
+    text-align: center;
+  }
+
+  .hero[data-align="right"] .inner {
+    text-align: right;
+  }
+
+  .byline {
+    color: var(--navy-150);
+    animation: fadeUp 0.8s ease 0.1s both;
+  }
+
+  h1 {
+    font-size: clamp(52px, 7vw, 84px);
+    color: var(--cream-50);
+    margin: 16px 0 20px;
+    max-width: 760px;
+    animation: fadeUp 0.8s ease 0.25s both;
+    text-wrap: pretty;
+  }
+
+  .subheading {
+    font-size: 20px;
+    line-height: 1.55;
+    color: var(--navy-100);
+    max-width: 540px;
+    margin: 0 0 32px;
+    animation: fadeUp 0.8s ease 0.4s both;
+    text-wrap: pretty;
+  }
+
+  .hero[data-align="center"] h1,
+  .hero[data-align="center"] .subheading {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .buttons {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    animation: fadeUp 0.8s ease 0.55s both;
+  }
+
+  .hero[data-align="center"] .buttons {
+    justify-content: center;
+  }
+</style>

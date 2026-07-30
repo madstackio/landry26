@@ -1,0 +1,87 @@
+---
+import type { Section } from "../../lib/cms";
+
+interface Props {
+  section: Section;
+}
+
+const { data } = Astro.props.section;
+const buttons: { label: string; url: string; style?: string }[] = Array.isArray(data.buttons)
+  ? data.buttons
+  : [];
+
+function btnClass(style?: string) {
+  if (style === "secondary" || style === "ghost") return "btn btn--lg btn--inverse";
+  return "btn btn--lg";
+}
+---
+
+<section class="cta">
+  {data.background_image && <img class="bg" src={data.background_image} alt="" loading="lazy" />}
+  <div class="scrim"></div>
+  <div class="container inner">
+    <h2 set:html={data.heading} />
+    {data.body && <div class="richtext body" set:html={data.body} />}
+    {
+      buttons.length > 0 && (
+        <div class="buttons">
+          {buttons.map((b) => (
+            <a href={b.url} class={btnClass(b.style)}>
+              {b.label}
+            </a>
+          ))}
+        </div>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .cta {
+    position: relative;
+    background: var(--navy-900);
+    padding: 104px 0;
+    overflow: hidden;
+  }
+
+  .bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(11, 44, 64, 0.72) 0%, rgba(11, 44, 64, 0.88) 100%);
+  }
+
+  .inner {
+    position: relative;
+    text-align: center;
+  }
+
+  h2 {
+    font-size: 46px;
+    color: var(--cream-50);
+    margin: 0 0 16px;
+    text-wrap: pretty;
+  }
+
+  .body {
+    font-size: 18px;
+    color: var(--navy-100);
+    max-width: 560px;
+    margin: 0 auto;
+  }
+
+  .buttons {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 32px;
+  }
+</style>

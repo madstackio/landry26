@@ -1,0 +1,209 @@
+---
+import type { Section } from "../../lib/cms";
+
+interface Props {
+  section: Section;
+}
+
+// Custom `a-day-at-the-landry` type: the template's signature expanding
+// hour-by-hour panels.
+const { data } = Astro.props.section;
+const panels: {
+  byline?: string;
+  heading?: string;
+  content?: string;
+  background_image?: string;
+}[] = Array.isArray(data.section_panel) ? data.section_panel : [];
+
+// Default the open panel to the current daypart when panel bylines look like
+// Morning/Afternoon/Evening; falls back to the second (midday) panel.
+---
+
+<section class="day">
+  <div class="container">
+    <div class="head">
+      <div>
+        {data.byline && <div class="eyebrow">{data.byline}</div>}
+        {data.heading && <h2 set:html={data.heading} />}
+      </div>
+      {data.subline && <p class="sub">{data.subline}</p>}
+    </div>
+    <div class="panels" data-day-panels>
+      {
+        panels.map((p, i) => (
+          <div
+            class="panel"
+            class:list={{ "is-active": i === 0 }}
+            data-daypart={(p.byline || "").toLowerCase()}
+            tabindex="0"
+            role="button"
+          >
+            {p.background_image && (
+              <div class="panel-bg" style={`background-image:url('${p.background_image}')`} />
+            )}
+            <div class="panel-scrim" />
+            <div class="panel-text">
+              {p.byline && <div class="eyebrow panel-time">{p.byline}</div>}
+              <div class="panel-body">
+                {p.heading && <h3>{p.heading}</h3>}
+                {p.content && <p>{p.content}</p>}
+              </div>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .day {
+    background: var(--navy-50);
+    padding: 104px 0;
+  }
+
+  .head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 32px;
+    flex-wrap: wrap;
+    margin-bottom: 48px;
+  }
+
+  h2 {
+    font-size: 44px;
+    margin: 14px 0 0;
+    max-width: 520px;
+  }
+
+  .sub {
+    font-size: 16px;
+    color: var(--text-muted);
+    max-width: 320px;
+    margin: 0;
+    text-align: right;
+  }
+
+  .panels {
+    display: flex;
+    gap: 10px;
+    height: 560px;
+  }
+
+  .panel {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    box-shadow: var(--shadow-card);
+    flex-shrink: 1;
+    flex-basis: 0%;
+    min-width: 0;
+    flex-grow: 1;
+    transition: flex-grow 550ms var(--ease-standard);
+  }
+
+  .panel.is-active {
+    flex-grow: 2.7;
+  }
+
+  .panel-bg {
+    position: absolute;
+    inset: 0;
+    background-color: var(--navy-100);
+    background-size: cover;
+    background-position: center;
+  }
+
+  .panel-scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(11, 44, 64, 0.06) 35%, rgba(11, 44, 64, 0.85) 100%);
+  }
+
+  .panel-text {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 30px;
+  }
+
+  .panel-time {
+    color: var(--navy-150);
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .panel-body {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 550ms ease, opacity 450ms ease 120ms;
+  }
+
+  .panel.is-active .panel-body {
+    max-height: 320px;
+    opacity: 1;
+  }
+
+  .panel-body h3 {
+    font-family: var(--font-display);
+    font-size: 31px;
+    color: var(--cream-50);
+    margin: 10px 0 12px;
+    text-wrap: pretty;
+  }
+
+  .panel-body p {
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--navy-100);
+    margin: 0;
+    max-width: 440px;
+  }
+
+  @media (max-width: 860px) {
+    .panels {
+      flex-direction: column;
+      height: auto;
+    }
+
+    .panel {
+      min-height: 96px;
+      flex-basis: auto;
+    }
+
+    .panel.is-active {
+      min-height: 380px;
+    }
+
+    .sub {
+      text-align: left;
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-day-panels]").forEach((group) => {
+    const panels = Array.from(group.querySelectorAll<HTMLElement>(".panel"));
+    const activate = (panel: HTMLElement) => {
+      panels.forEach((p) => p.classList.toggle("is-active", p === panel));
+    };
+    // Open the panel matching the visitor's time of day, like the template.
+    const hour = new Date().getHours();
+    const daypart = hour < 11 ? "morning" : hour < 17 ? "afternoon" : "evening";
+    const match = panels.find((p) => p.dataset.daypart === daypart);
+    if (match) activate(match);
+    panels.forEach((panel) => {
+      panel.addEventListener("click", () => activate(panel));
+      panel.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          activate(panel);
+        }
+      });
+    });
+  });
+</script>

@@ -1,0 +1,119 @@
+---
+import type { Section, Special } from "../../lib/cms";
+
+interface Props {
+  section: Section;
+}
+
+const { data } = Astro.props.section;
+const specials: Special[] = Array.isArray(data.items) ? data.items : [];
+---
+
+{
+  specials.length > 0 && (
+    <section class="specials">
+      <div class="container">
+        {data.heading ? <h2 set:html={data.heading} /> : <h2>Current specials</h2>}
+        <div class="grid">
+          {specials.map((s) => (
+            <div class="card" class:list={{ "image-only": s.display_mode === "image" }}>
+              {s.display_mode !== "text" && s.image && (
+                <img class="banner" src={s.image.url} alt={s.image.alt || s.title} loading="lazy" />
+              )}
+              {s.display_mode !== "image" && (
+                <div class="body">
+                  <h3>{s.title}</h3>
+                  {s.description && <p>{s.description}</p>}
+                  {s.floor_plan && <span class="tag">{s.floor_plan.name}</span>}
+                  {s.disclaimer && <p class="disclaimer">{s.disclaimer}</p>}
+                  <a href="#schedule-a-tour" class="btn btn--sm">
+                    Claim This Offer
+                  </a>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .specials {
+    padding: 88px 0;
+    background: var(--navy-50);
+  }
+
+  h2 {
+    font-size: 40px;
+    margin: 0 0 32px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  .card {
+    background: var(--white);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .banner {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+  }
+
+  .card.image-only .banner {
+    height: auto;
+  }
+
+  .body {
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+    flex: 1;
+  }
+
+  h3 {
+    font-family: var(--font-display);
+    font-size: 25px;
+    color: var(--navy-900);
+    margin: 0;
+  }
+
+  .body p {
+    font-size: 15px;
+    color: var(--charcoal-700);
+    margin: 0;
+  }
+
+  .tag {
+    font-size: 12px;
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-wide);
+    color: var(--navy-700);
+    background: var(--navy-50);
+    border-radius: var(--radius-pill);
+    padding: 5px 12px;
+  }
+
+  .disclaimer {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .body .btn {
+    margin-top: auto;
+  }
+</style>

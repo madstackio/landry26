@@ -1,0 +1,38 @@
+---
+import type { Section } from "../../lib/cms";
+
+interface Props {
+  section: Section;
+}
+
+const { data } = Astro.props.section;
+---
+
+<section class="text-block">
+  <div class="container inner">
+    {data.heading && <h2 set:html={data.heading} />}
+    {data.body && <div class="richtext body" set:html={data.body} />}
+  </div>
+</section>
+
+<style>
+  .text-block {
+    padding: 96px 0;
+  }
+
+  .inner {
+    max-width: 760px;
+  }
+
+  h2 {
+    font-size: 44px;
+    margin: 0 0 20px;
+    text-wrap: pretty;
+  }
+
+  .body {
+    font-size: 17px;
+    line-height: 1.65;
+    color: var(--charcoal-700);
+  }
+</style>

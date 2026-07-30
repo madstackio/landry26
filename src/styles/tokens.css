@@ -1,0 +1,107 @@
+/* The Landry design system tokens — ported from the 2026 redesign package */
+:root {
+  /* Brand core */
+  --navy-900: #0B2C40;
+  --navy-800: #103A54;
+  --navy-700: #154766; /* brand primary */
+  --navy-600: #1E5A80;
+  --navy-500: #2A6E99;
+  --navy-300: #7FA3BC;
+  --navy-150: #C6D6E1;
+  --navy-100: #DCE7EF;
+  --navy-50: #EDF3F7;
+  /* Logo slate (secondary mark color) */
+  --slate-400: #A7B1BB;
+  --slate-500: #8A96A2;
+  --slate-600: #6E7B88;
+  /* Warm whites & neutrals */
+  --white: #FFFFFF;
+  --cream-50: #FAF8F5;
+  --cream-100: #F4F0EA;
+  --cream-200: #E9E3D9;
+  --stone-300: #D4CCC0;
+  --stone-500: #8D8578;
+  --charcoal-700: #3A3D40;
+  --charcoal-900: #1F2124;
+  /* Warm accents (leather, wood, pool) */
+  --cognac-500: #A8613A;
+  --cognac-600: #8C4E2D;
+  --pool-400: #3E8FBF;
+  /* Semantic */
+  --success-600: #3D7A4E;
+  --success-100: #E3EFE6;
+  --warning-600: #A97817;
+  --warning-100: #F7EED8;
+  --error-600: #A93B2F;
+  --error-100: #F6E4E1;
+  --info-600: var(--navy-600);
+  --info-100: var(--navy-100);
+  /* Aliases */
+  --brand: var(--navy-700);
+  --brand-hover: var(--navy-800);
+  --brand-active: var(--navy-900);
+  --accent: var(--cognac-500);
+  --text-heading: var(--navy-900);
+  --text-body: var(--charcoal-700);
+  --text-muted: var(--slate-600);
+  --text-inverse: var(--cream-50);
+  --surface-page: var(--cream-50);
+  --surface-card: var(--white);
+  --surface-raised: var(--white);
+  --surface-tint: var(--navy-50);
+  --surface-dark: var(--navy-900);
+  --border-subtle: var(--cream-200);
+  --border-strong: var(--stone-300);
+  --border-focus: var(--navy-500);
+  --link: var(--navy-600);
+  --link-hover: var(--navy-800);
+
+  /* Typography */
+  --font-display: 'Marcellus', Georgia, serif;
+  --font-body: 'Source Sans 3', 'Segoe UI', system-ui, sans-serif;
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 22px;
+  --text-2xl: 28px;
+  --text-3xl: 36px;
+  --text-4xl: 48px;
+  --text-5xl: 64px;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --leading-tight: 1.1;
+  --leading-snug: 1.25;
+  --leading-normal: 1.55;
+  --tracking-caps: 0.14em;
+  --tracking-wide: 0.04em;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+  --space-10: 128px;
+  --container-max: 1200px;
+  --container-pad: 24px;
+
+  /* Effects */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+  --shadow-card: 0 1px 2px rgba(11, 44, 64, .06), 0 4px 12px rgba(11, 44, 64, .08);
+  --shadow-raised: 0 4px 8px rgba(11, 44, 64, .10), 0 12px 32px rgba(11, 44, 64, .14);
+  --shadow-focus: 0 0 0 3px rgba(42, 110, 153, .35);
+  --ease-standard: cubic-bezier(.4, 0, .2, 1);
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --overlay-scrim: linear-gradient(180deg, rgba(11, 44, 64, .15) 0%, rgba(11, 44, 64, .65) 100%);
+}

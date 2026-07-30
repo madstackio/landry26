@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/the-landry-design-system-eb0af830-283c-4953-b1c2-80be5da76f23/tokens/colors.css">
+<link rel="stylesheet" href="_ds/the-landry-design-system-eb0af830-283c-4953-b1c2-80be5da76f23/tokens/typography.css">
+<link rel="stylesheet" href="_ds/the-landry-design-system-eb0af830-283c-4953-b1c2-80be5da76f23/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/the-landry-design-system-eb0af830-283c-4953-b1c2-80be5da76f23/tokens/effects.css">
+<link rel="stylesheet" href="_ds/the-landry-design-system-eb0af830-283c-4953-b1c2-80be5da76f23/styles.css">
+<script src="_ds/the-landry-design-system-eb0af830-283c-4953-b1c2-80be5da76f23/_ds_bundle.js"></script>
+<script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
+<style>
+body{margin:0;background:var(--cream-50)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
+@keyframes kenburns{from{transform:scale(1.09)}to{transform:scale(1)}}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+a{color:var(--link)}a:hover{color:var(--link-hover)}
+</style>
+</helmet>
+
+<sc-if value="{{ promoOn }}" hint-placeholder-val="{{ true }}">
+<div style="background:var(--navy-900);color:var(--navy-100);font-size:14px;text-align:center;padding:9px 24px;letter-spacing:0.02em">
+$99 move-in special — plus our Preferred Employer Program for teachers and first responders. <a href="#tour" onClick="{{ goTour }}" style="color:var(--cream-50);text-decoration:underline;text-underline-offset:3px;cursor:pointer">Book a tour</a>
+</div>
+</sc-if>
+
+<header style="position:sticky;top:0;z-index:50;background:var(--cream-50);border-bottom:1px solid var(--border-subtle)">
+<div style="max-width:1200px;margin:0 auto;padding:0 32px;height:78px;display:flex;align-items:center;justify-content:space-between;gap:24px">
+<a href="#" onClick="{{ goTop }}" style="display:flex;align-items:center;cursor:pointer"><img src="assets/logo.svg" alt="The Landry" style="height:54px;display:block"></a>
+<nav style="display:flex;align-items:center;gap:34px">
+<a href="#day" onClick="{{ goDay }}" style="font-size:15px;font-weight:600;color:var(--navy-800);cursor:pointer" style-hover="color:var(--navy-500)">Life Here</a>
+<a href="#plans" onClick="{{ goPlans }}" style="font-size:15px;font-weight:600;color:var(--navy-800);cursor:pointer" style-hover="color:var(--navy-500)">Residences</a>
+<a href="#gallery" onClick="{{ goGallery }}" style="font-size:15px;font-weight:600;color:var(--navy-800);cursor:pointer" style-hover="color:var(--navy-500)">Gallery</a>
+<a href="#neighborhood" onClick="{{ goNeighborhood }}" style="font-size:15px;font-weight:600;color:var(--navy-800);cursor:pointer" style-hover="color:var(--navy-500)">Neighborhood</a>
+</nav>
+<div style="display:flex;align-items:center;gap:18px">
+<a href="tel:8177859839" style="font-size:15px;font-weight:600;color:var(--navy-700)">(817) 785-9839</a>
+<x-import component-from-global-scope="TheLandryDesignSystem_eb0af8.Button" onClick="{{ goTour }}" hint-size="auto,40px">Schedule a Tour</x-import>
+</div>
+</div>
+</header>
+
+<section data-screen-label="Hero" style="position:relative;height:88vh;min-height:640px;overflow:hidden">
+<img src="assets/photos/pool-courtyard.jpg" alt="The pool courtyard at The Landry" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;animation:kenburns 16s ease-out forwards">
+<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,44,64,0.18) 0%,rgba(11,44,64,0.30) 45%,rgba(11,44,64,0.82) 100%)"></div>
+<div style="position:absolute;inset:0;display:flex;align-items:flex-end">
+<div style="max-width:1200px;margin:0 auto;padding:0 32px 84px;width:100%">
+<div class="eyebrow" style="color:var(--navy-150);animation:fadeUp 0.8s ease 0.1s both">{{ greeting }}</div>
+<h1 style="font-size:clamp(52px,7vw,84px);color:var(--cream-50);margin:16px 0 20px;max-width:760px;animation:fadeUp 0.8s ease 0.25s both">Make yourself at&nbsp;home.</h1>
+<p style="font-size:20px;line-height:1.55;color:var(--navy-100);max-width:540px;margin:0 0 32px;animation:fadeUp 0.8s ease 0.4s both;text-wrap:pretty">288 newly renovated apartment homes in North Arlington — pool days, open kitchens, and room for the dog, too.</p>
+<div style="display:flex;gap:14px;animation:fadeUp 0.8s ease 0.55s both">
+<x-import component-from-global-scope="TheLandryDesignSystem_eb0af8.Button" size="lg" onClick="{{ goTour }}" hint-size="auto,48px">Schedule a Tour</x-import>
+<x-import component-from-global-scope="TheLandryDesignSystem_eb0af8.Button" size="lg" variant="secondary" dc-props="{{ heroGhostBtn }}" onClick="{{ goPlans }}" hint-size="auto,48px">View Floor Plans</x-import>
+</div>
+</div>
+</div>
+</section>
+
+<sc-if value="{{ marqueeOn }}" hint-placeholder-val="{{ true }}">
+<div style="background:var(--cream-100);border-top:1px solid var(--border-subtle);border-bottom:1px solid var(--border-subtle);padding:20px 32px">
+<div style="max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;gap:16px;font-family:var(--font-display);font-size:clamp(15px,1.5vw,19px);align-items:center;white-space:nowrap">
+<a onClick="{{ goAmenities }}" style="color:var(--navy-800);cursor:pointer;display:inline-block;transition:color 160ms ease,transform 160ms ease" style-hover="color:var(--cognac-500);transform:translateY(-2px)">Pool Days</a><span style="color:var(--slate-400)">·</span>
+<a onClick="{{ goAmenities }}" style="color:var(--navy-800);cursor:pointer;display:inline-block;transition:color 160ms ease,transform 160ms ease" style-hover="color:var(--cognac-500);transform:translateY(-2px)">Open Kitchens</a><span style="color:var(--slate-400)">·</span>
+<a onClick="{{ goAmenities }}" style="color:var(--navy-800);cursor:pointer;display:inline-block;transition:color 160ms ease,transform 160ms ease" style-hover="color:var(--cognac-500);transform:translateY(-2px)">Dog Park</a><span style="color:var(--slate-400)">·</span>
+<a onClick="{{ goAmenities }}" style="color:var(--navy-800);cursor:pointer;display:inline-block;transition:color 160ms ease,transform 160ms ease" style-hover="color:var(--cognac-500);transform:translateY(-2px)">Fitness Center</a><span style="color:var(--slate-400)">·</span>
+<a onClick="{{ goAmenities }}" style="color:var(--navy-800);cursor:pointer;display:inline-block;transition:color 160ms ease,transform 160ms ease" style-hover="color:var(--cognac-500);transform:translateY(-2px)">Gated Entry</a>
+</div>
+</div>
+</sc-if>
+
+<section data-screen-label="Welcome" style="max-width:1200px;margin:0 auto;padding:112px 32px 96px">
+<div style="display:grid;grid-template-columns:1.1fr 1fr;gap:72px;align-items:center">
+<div>
+<div class="eyebrow">Welcome Home</div>
+<h2 style="font-size:46px;margin:16px 0 20px;max-width:480px;text-wrap:pretty">The warmth of a neighborhood, the ease of a lease.</h2>
+<p style="font-size:17px;line-height:1.65;color:var(--charcoal-700);max-width:480px;margin:0 0 16px">Tucked into a quiet corner of North Arlington, The Landry is the kind of place where the pool is a five-minute walk in flip-flops and your neighbors actually wave back. Every home has been thoughtfully renovated — and every day here feels a little less like renting.</p>
+<p style="font-size:17px;line-height:1.65;color:var(--text-muted);max-width:480px;margin:0">Come see for yourself — we'd love to show you around.</p>
+</div>
+<div style="position:relative;padding:0 0 24px 24px">
+<div style="position:absolute;left:0;bottom:0;width:82%;height:82%;border:1px solid var(--navy-150);border-radius:var(--radius-lg)"></div>
+<img src="assets/photos/building-exterior.jpg" alt="Building exterior at The Landry" style="position:relative;width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:var(--radius-lg);box-shadow:var(--shadow-raised)">
+</div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:32px;margin-top:88px;border-top:1px solid var(--border-subtle);padding-top:48px">
+<div><div style="font-family:var(--font-display);font-size:52px;color:var(--navy-700);line-height:1.1">288</div><div class="eyebrow" style="margin-top:8px">Apartment Homes</div></div>
+<div><div style="font-family:var(--font-display);font-size:52px;color:var(--navy-700);line-height:1.1">1–2</div><div class="eyebrow" style="margin-top:8px">Bedroom Floor Plans</div></div>
+<div><div style="font-family:var(--font-display);font-size:52px;color:var(--navy-700);line-height:1.1">3</div><div class="eyebrow" style="margin-top:8px">Story Buildings, Renovated</div></div>
+<div><div style="font-family:var(--font-display);font-size:52px;color:var(--navy-700);line-height:1.1">5 min</div><div class="eyebrow" style="margin-top:8px">To River Legacy Park</div></div>
+</div>
+</section>
+
+<section id="day" data-screen-label="A Day at The Landry" style="background:var(--navy-50);padding:104px 0">
+<div style="max-width:1200px;margin:0 auto;padding:0 32px">
+<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:32px;flex-wrap:wrap;margin-bottom:48px">
+<div>
+<div class="eyebrow">A Day at The Landry</div>
+<h2 style="font-size:44px;margin:14px 0 0;max-width:520px">Good hours, morning to night.</h2>
+</div>
+<p style="font-size:16px;color:var(--text-muted);max-width:320px;margin:0;text-align:right">Follow one day here, hour by hour — tap a panel to step into it.</p>
+</div>
+<div style="display:flex;gap:10px;height:560px">
+<sc-for list="{{ dayPanels }}" as="pn" hint-placeholder-count="3">
+<div onClick="{{ pn.pick }}" style="position:relative;overflow:hidden;border-radius:var(--radius-lg);cursor:pointer;box-shadow:var(--shadow-card);flex-shrink:1;flex-basis:0%;min-width:0;flex-grow:{{ pn.grow }};transition:flex-grow 550ms cubic-bezier(0.4,0,0.2,1)">
+<div style="position:absolute;inset:0;background-color:var(--navy-100);background-size:cover;background-position:center;background-image:url('{{ pn.img }}')"></div>
+<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,44,64,0.06) 35%,rgba(11,44,64,0.85) 100%)"></div>
+<div style="position:absolute;left:0;right:0;bottom:0;padding:30px">
+<div class="eyebrow" style="color:var(--navy-150);font-size:12px;white-space:nowrap">{{ pn.time }}</div>
+<div style="overflow:hidden;transition:max-height 550ms ease,opacity 450ms ease 120ms;max-height:{{ pn.mh }};opacity:{{ pn.op }}">
+<h3 style="font-family:var(--font-display);font-size:31px;color:var(--cream-50);margin:10px 0 12px;text-wrap:pretty">{{ pn.title }}</h3>
+<p style="font-size:16px;line-height:1.6;color:var(--navy-100);margin:0 0 18px;max-width:440px">{{ pn.body }}</p>
+<div style="display:flex;gap:10px;flex-wrap:wrap">
+<sc-for list="{{ pn.chips }}" as="c" hint-placeholder-count="3">
+<span style="font-size:13px;font-weight:600;color:var(--cream-50);border:1px solid rgba(250,248,245,0.55);border-radius:999px;padding:7px 14px;white-space:nowrap">{{ c }}</span>
+</sc-for>
+</div>
+</div>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</section>
+
+<section id="amenities" data-screen-label="Amenities" style="max-width:1200px;margin:0 auto;padding:112px 32px">
+<div style="display:grid;grid-template-columns:1fr 1.35fr;gap:80px;align-items:start">
+<div style="position:sticky;top:110px">
+<img src="assets/photos/pool-courtyard.jpg" alt="The pool courtyard at The Landry" style="width:100%;height:230px;object-fit:cover;border-radius:var(--radius-lg);box-shadow:var(--shadow-card)">
+<div class="eyebrow" style="margin-top:28px">Life at The Landry</div>
+<h2 style="font-size:44px;margin:16px 0 20px;text-wrap:pretty">Everything you need, steps from your door.</h2>
+<p style="font-size:17px;line-height:1.65;color:var(--text-muted);margin:0 0 28px;max-width:380px">From a morning workout to an evening by the grill, the best parts of your day never leave the property.</p>
+<x-import component-from-global-scope="TheLandryDesignSystem_eb0af8.Button" variant="secondary" onClick="{{ goGallery }}" hint-size="auto,40px">See the Gallery</x-import>
+</div>
+<div>
+<div style="display:grid;grid-template-columns:56px 1fr 40px;gap:20px;align-items:center;padding:26px 8px;border-top:1px solid var(--border-strong)" style-hover="background:var(--white)">
+<div style="font-family:var(--font-display);font-size:19px;color:var(--slate-400)">01</div>
+<div><div style="font-family:var(--font-display);font-size:25px;color:var(--navy-900)">Swimming Pool</div><div style="font-size:15px;color:var(--text-muted);margin-top:4px">A resort-style pool with loungers and a shaded pergola — summer, sorted.</div></div>
+<div style="color:var(--navy-300)"><i data-lucide="waves" style="width:24px;height:24px"></i></div>
+</div>
+<div style="display:grid;grid-template-columns:56px 1fr 40px;gap:20px;align-items:center;padding:26px 8px;border-top:1px solid var(--border-subtle)" style-hover="background:var(--white)">
+<div style="font-family:var(--font-display);font-size:19px;color:var(--slate-400)">02</div>
+<div><div style="font-family:var(--font-display);font-size:25px;color:var(--navy-900)">Fitness Center</div><div style="font-size:15px;color:var(--text-muted);margin-top:4px">Enjoy getting active any day of the week, no membership required.</div></div>
+<div style="color:var(--navy-300)"><i data-lucide="dumbbell" style="width:24px;height:24px"></i></div>
+</div>
+<div style="display:grid;grid-template-columns:56px 1fr 40px;gap:20px;align-items:center;padding:26px 8px;border-top:1px solid var(--border-subtle)" style-hover="background:var(--white)">
+<div style="font-family:var(--font-display);font-size:19px;color:var(--slate-400)">03</div>
+<div><div style="font-family:var(--font-display);font-size:25px;color:var(--navy-900)">Clubhouse &amp; Open Kitchen</div><div style="font-size:15px;color:var(--text-muted);margin-top:4px">Prepare the perfect meal in our open kitchen, or settle into the lounge with neighbors.</div></div>
+<div style="color:var(--navy-300)"><i data-lucide="cooking-pot" style="width:24px;height:24px"></i></div>
+</div>
+<div style="display:grid;grid-template-columns:56px 1fr 40px;gap:20px;align-items:center;padding:26px 8px;border-top:1px solid var(--border-subtle)" style-hover="background:var(--white)">
+<div style="font-family:var(--font-display);font-size:19px;color:var(--slate-400)">04</div>
+<div><div style="font-family:var(--font-display);font-size:25px;color:var(--navy-900)">Dog Park</div><div style="font-size:15px;color:var(--text-muted);margin-top:4px">An off-leash run and pet washing station — because home should welcome the whole family.</div></div>
+<div style="color:var(--navy-300)"><i data-lucide="dog" style="width:24px;height:24px"></i></div>
+</div>
+<div style="display:grid;grid-template-columns:56px 1fr 40px;gap:20px;align-items:center;padding:26px 8px;border-top:1px solid var(--border-subtle)" style-hover="background:var(--white)">
+<div style="font-family:var(--font-display);font-size:19px;color:var(--slate-400)">05</div>
+<div><div style="font-family:var(--font-display);font-size:25px;color:var(--navy-900)">Playground</div><div style="font-size:15px;color:var(--text-muted);margin-top:4px">Space for the little ones to play, right outside your door.</div></div>
+<div style="color:var(--navy-300)"><i data-lucide="trees" style="width:24px;height:24px"></i></div>
+</div>
+<div style="display:grid;grid-template-columns:56px 1fr 40px;gap:20px;align-items:center;padding:26px 8px;border-top:1px solid var(--border-subtle);border-bottom:1px solid var(--border-strong)" style-hover="background:var(--white)">
+<div style="font-family:var(--font-display);font-size:19px;color:var(--slate-400)">06</div>
+<div><div style="font-family:var(--font-display);font-size:25px;color:var(--navy-900)">Picnic &amp; Grill Areas</div><div style="font-size:15px;color:var(--text-muted);margin-top:4px">Gather under the trees for a weekend cookout on us — the grills stay lit.</div></div>
+<div style="color:var(--navy-300)"><i data-lucide="flame" style="width:24px;height:24px"></i></div>
+</div>
+</div>
+</div>
+</section>
+
+<section id="plans" data-screen-label="Floor Plans" style="background:var(--cream-100);padding:104px 0">
+<div style="max-width:1200px;margin:0 auto;padding:0 32px">
+<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:32px;flex-wrap:wrap;margin-bottom:40px">
+<div>
+<div class="eyebrow">Residences</div>
+<h2 style="font-size:44px;margin:14px 0 0">Find the one that fits.</h2>
+</div>
+<div style="display:flex;gap:10px">
+<sc-for list="{{ planFilters }}" as="f" hint-placeholder-count="3">
+<button onClick="{{ f.pick }}" style="font-family:var(--font-body);font-size:14px;font-weight:600;padding:10px 20px;border-radius:999px;cursor:pointer;transition:all 160ms ease;border:1px solid {{ f.bd }};background:{{ f.bg }};color:{{ f.c }}">{{ f.label }}</button>
+</sc-for>
+</div>
+</div>
+<div style="background:var(--white);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:8px 32px">
+<sc-for list="{{ filteredPlans }}" as="p" hint-placeholder-count="4">
+<div style="display:grid;grid-template-columns:110px 1.5fr 1fr 0.9fr 1.1fr auto;gap:24px;align-items:center;padding:22px 0;border-top:1px solid var(--border-subtle)">
+<div role="img" aria-label="{{ p.name }}" style="width:110px;height:76px;border-radius:var(--radius-md);background-color:var(--navy-100);background-size:cover;background-position:center;background-image:url('{{ p.img }}')"></div>
+<div><div style="font-family:var(--font-display);font-size:25px;color:var(--navy-900)">{{ p.name }}</div><div class="eyebrow" style="font-size:12px;margin-top:3px">{{ p.type }}</div></div>
+<div style="font-size:15px;color:var(--slate-600)">{{ p.meta }}</div>
+<div style="font-size:15px;color:var(--charcoal-700)">{{ p.sqft }}</div>
+<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><span style="font-weight:700;color:var(--navy-700);font-size:19px">{{ p.price }}<span style="font-weight:400;color:var(--slate-600);font-size:14px">/mo</span></span></div>
+<x-import component-from-global-scope="TheLandryDesignSystem_eb0af8.Button" size="sm" variant="secondary" onClick="{{ p.onTour }}" hint-size="auto,32px">Tour This Plan</x-import>
+</div>
+</sc-for>
+</div>
+<p style="font-size:14px;color:var(--text-muted);margin:18px 4px 0">Pricing reflects today's availability and can change daily. Your leasing team will confirm exact homes and move-in dates on your tour.</p>
+</div>
+</section>
+
+<section id="gallery" data-screen-label="Gallery" style="padding:104px 0 0">
+<div style="max-width:1200px;margin:0 auto;padding:0 32px 48px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px">
+<div>
+<div class="eyebrow">Gallery</div>
+<h2 style="font-size:44px;margin:14px 0 0">Take a look around.</h2>
+</div>
+<p style="font-size:16px;color:var(--text-muted);max-width:340px;margin:0;text-align:right">Every photo is the real thing — warm Texas light included.</p>
+</div>
+<div style="display:grid;grid-template-columns:1.5fr 1fr 1fr 1.2fr;gap:6px;height:420px">
+<div style="overflow:hidden"><img src="assets/photos/pool-courtyard.jpg" alt="Pool courtyard" style="width:100%;height:100%;object-fit:cover;transition:transform 300ms ease" style-hover="transform:scale(1.045)"></div>
+<div style="overflow:hidden"><img src="assets/photos/clubhouse-lounge.jpg" alt="Clubhouse lounge" style="width:100%;height:100%;object-fit:cover;transition:transform 300ms ease" style-hover="transform:scale(1.045)"></div>
+<div style="overflow:hidden"><img src="assets/photos/clubhouse-kitchen.jpg" alt="Clubhouse kitchen" style="width:100%;height:100%;object-fit:cover;transition:transform 300ms ease" style-hover="transform:scale(1.045)"></div>
+<div style="overflow:hidden"><img src="assets/photos/building-exterior.jpg" alt="Building exterior" style="width:100%;height:100%;object-fit:cover;transition:transform 300ms ease" style-hover="transform:scale(1.045)"></div>
+</div>
+</section>
+
+<section id="neighborhood" data-screen-label="Neighborhood" style="background:var(--navy-900);padding:112px 0">
+<div style="max-width:1200px;margin:0 auto;padding:0 32px;display:grid;grid-template-columns:1fr 1.1fr;gap:88px;align-items:start">
+<div>
+<div class="eyebrow" style="color:var(--navy-150)">North Arlington</div>
+<h2 style="font-size:44px;color:var(--cream-50);margin:16px 0 20px;text-wrap:pretty">In the middle of everything Arlington.</h2>
+<p style="font-size:17px;line-height:1.65;color:var(--navy-100);max-width:420px;margin:0 0 12px">Game days at the stadiums, trail miles at River Legacy, and two international airports within a short drive — with a quiet street to come home to.</p>
+<p style="font-size:14px;color:var(--navy-300);margin:0">Drive times from 2505 Thomason Cir, Arlington, TX 76006.</p>
+</div>
+<div>
+<div style="display:flex;align-items:baseline;justify-content:space-between;gap:24px;padding:20px 4px;border-top:1px solid rgba(250,248,245,0.22)"><span style="font-family:var(--font-display);font-size:24px;color:var(--cream-50)">River Legacy Park</span><span class="eyebrow" style="color:var(--navy-150)">5 min</span></div>
+<div style="display:flex;align-items:baseline;justify-content:space-between;gap:24px;padding:20px 4px;border-top:1px solid rgba(250,248,245,0.14)"><span style="font-family:var(--font-display);font-size:24px;color:var(--cream-50)">Six Flags Over Texas</span><span class="eyebrow" style="color:var(--navy-150)">8 min</span></div>
+<div style="display:flex;align-items:baseline;justify-content:space-between;gap:24px;padding:20px 4px;border-top:1px solid rgba(250,248,245,0.14)"><span style="font-family:var(--font-display);font-size:24px;color:var(--cream-50)">AT&amp;T Stadium</span><span class="eyebrow" style="color:var(--navy-150)">10 min</span></div>
+<div style="display:flex;align-items:baseline;justify-content:space-between;gap:24px;padding:20px 4px;border-top:1px solid rgba(250,248,245,0.14)"><span style="font-family:var(--font-display);font-size:24px;color:var(--cream-50)">Globe Life Field</span><span class="eyebrow" style="color:var(--navy-150)">10 min</span></div>
+<div style="display:flex;align-items:baseline;justify-content:space-between;gap:24px;padding:20px 4px;border-top:1px solid rgba(250,248,245,0.14)"><span style="font-family:var(--font-display);font-size:24px;color:var(--cream-50)">UT Arlington</span><span class="eyebrow" style="color:var(--navy-150)">12 min</span></div>
+<div style="display:flex;align-items:baseline;justify-content:space-between;gap:24px;padding:20px 4px;border-top:1px solid rgba(250,248,245,0.14);border-bottom:1px solid rgba(250,248,245,0.22)"><span style="font-family:var(--font-display);font-size:24px;color:var(--cream-50)">DFW International Airport</span><span class="eyebrow" style="color:var(--navy-150)">18 min</span></div>
+</div>
+</div>
+</section>
+
+<section id="tour" data-screen-label="Schedule a Tour" style="padding:112px 32px">
+<div style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1.1fr;gap:80px;align-items:start">
+<div>
+<x-import component-from-global-scope="landry-map" from="./landry-map.js" zoom="13" height="250" hint-size="100%,250px"></x-import>
+<div class="eyebrow" style="margin-top:28px">Schedule a Private Tour</div>
+<h2 style="font-size:46px;margin:16px 0 14px">See it in person.</h2>
+<p style="font-size:17px;line-height:1.65;color:var(--charcoal-700);max-width:420px;margin:0 0 36px">Twenty minutes, no pressure, same-day when available. We'll have the keys ready and the coffee on.</p>
+<div style="display:grid;gap:14px;font-size:15px;color:var(--charcoal-700)">
+<div style="display:flex;gap:12px;align-items:flex-start"><span style="color:var(--navy-300);flex:none;margin-top:1px"><i data-lucide="map-pin" style="width:20px;height:20px"></i></span><span>2505 Thomason Cir, Arlington, TX 76006</span></div>
+<div style="display:flex;gap:12px;align-items:flex-start"><span style="color:var(--navy-300);flex:none;margin-top:1px"><i data-lucide="phone" style="width:20px;height:20px"></i></span><a href="tel:8177859839" style="color:var(--navy-700);font-weight:600">(817) 785-9839</a></div>
+<div style="display:flex;gap:12px;align-items:flex-start"><span style="color:var(--navy-300);flex:none;margin-top:1px"><i data-lucide="clock" style="width:20px;height:20px"></i></span><span>Mon–Fri 9:30 AM – 5:30 PM · Sat 10:00 AM – 4:00 PM · Sun Closed</span></div>
+</div>
+</div>
+<div>
+<sc-if value="{{ notSubmitted }}" hint-placeholder-val="{{ true }}">
+<div style="background:var(--white);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:40px;text-align:left">
+<div style="font-family:var(--font-display);font-size:27px;color:var(--navy-900);margin-bottom:6px">Request a private tour</div>
+<p style="font-size:15px;color:var(--text-muted);margin:0 0 28px">Thirty seconds — we'll confirm by text.</p>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
+<x-import component-from-global-scope="TheLandryDesignSystem_eb0af8.Input" label="Name" placeholder="Jordan Ellis" onChange="{{ onName }}" hint-size="100%,68px"></x-import>
+<x-import component-from-global-scope="TheLandryDesignSystem_eb0af8.Input" label="Phone" type="tel" placeholder="(817) 785-9839" onChange="{{ onPhone }}" hint-size="100%,68px"></x-import>
+</div>
+<div class="eyebrow" style="font-size:12px;margin-bottom:10px">Floor Plan</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px">
+<sc-for list="{{ bedTabs }}" as="b" hint-placeholder-count="3">
+<button onClick="{{ b.pick }}" style="font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer;border-radius:999px;padding:10px 20px;transition:all 160ms ease;border:1px solid {{ b.bd }};background:{{ b.bg }};color:{{ b.c }}">{{ b.label }}</button>
+</sc-for>
+</div>
+<div style="margin-bottom:30px">
+<x-import component-from-global-scope="TheLandryDesignSystem_eb0af8.Input" label="Move-In Date" type="date" onChange="{{ onMoveIn }}" hint-size="100%,68px"></x-import>
+</div>
+<x-import component-from-global-scope="TheLandryDesignSystem_eb0af8.Button" size="lg" style="width:100%" onClick="{{ submitTour }}" hint-size="100%,48px">Request Tour</x-import>
+<p style="font-size:13px;color:var(--text-muted);margin:16px 0 0;line-height:1.5">One confirmation text. No spam, no obligation. Protected by reCAPTCHA — <a href="https://policies.google.com/privacy">Privacy</a> &amp; <a href="https://policies.google.com/terms">Terms</a></p>
+</div>
+</sc-if>
+<sc-if value="{{ submitted }}" hint-placeholder-val="{{ false }}">
+<div style="background:var(--white);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:56px 40px">
+<div style="font-family:var(--font-display);font-size:30px;color:var(--navy-900);margin-bottom:12px">Request received.</div>
+<p style="font-size:17px;color:var(--charcoal-700);margin:0 0 26px;line-height:1.6">{{ confirmLine }}</p>
+<x-import component-from-global-scope="TheLandryDesignSystem_eb0af8.Button" variant="ghost" onClick="{{ resetTour }}" hint-size="auto,40px">Edit My Request</x-import>
+</div>
+</sc-if>
+</div>
+</div>
+</section>
+
+<footer style="background:var(--navy-900);color:var(--navy-100);padding:72px 0 0">
+<div style="max-width:1200px;margin:0 auto;padding:0 32px 56px;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:48px">
+<div>
+<img src="assets/logo.svg" alt="The Landry" style="height:64px;display:block;filter:brightness(0) invert(0.96);margin-bottom:18px">
+<p style="font-size:15px;line-height:1.6;margin:0;color:var(--navy-150)">2505 Thomason Cir<br>Arlington, TX 76006</p>
+</div>
+<div>
+<div class="eyebrow" style="color:var(--slate-400);margin-bottom:16px">Explore</div>
+<div style="display:grid;gap:10px;font-size:15px">
+<a href="#day" onClick="{{ goDay }}" style="color:var(--navy-100);cursor:pointer" style-hover="color:var(--cream-50)">Life Here</a>
+<a href="#plans" onClick="{{ goPlans }}" style="color:var(--navy-100);cursor:pointer" style-hover="color:var(--cream-50)">Residences</a>
+<a href="#gallery" onClick="{{ goGallery }}" style="color:var(--navy-100);cursor:pointer" style-hover="color:var(--cream-50)">Gallery</a>
+<a href="#neighborhood" onClick="{{ goNeighborhood }}" style="color:var(--navy-100);cursor:pointer" style-hover="color:var(--cream-50)">Neighborhood</a>
+</div>
+</div>
+<div>
+<div class="eyebrow" style="color:var(--slate-400);margin-bottom:16px">Contact</div>
+<div style="display:grid;gap:10px;font-size:15px">
+<a href="tel:8177859839" style="color:var(--navy-100)" style-hover="color:var(--cream-50)">(817) 785-9839</a>
+<a href="mailto:landry@reapmgt.com" style="color:var(--navy-100)" style-hover="color:var(--cream-50)">landry@reapmgt.com</a>
+<a href="https://reapmgt.appfolio.com/connect/users/sign_in" style="color:var(--navy-100)" style-hover="color:var(--cream-50)">Resident Portal</a>
+</div>
+</div>
+<div>
+<div class="eyebrow" style="color:var(--slate-400);margin-bottom:16px">Office Hours</div>
+<div style="display:grid;gap:10px;font-size:15px;color:var(--navy-150)">
+<span>Mon–Fri · 9:30a to 5:30p</span>
+<span>Saturday · 10a to 4p</span>
+<span>Sunday · Closed</span>
+</div>
+</div>
+</div>
+<div style="border-top:1px solid rgba(250,248,245,0.14)">
+<div style="max-width:1200px;margin:0 auto;padding:22px 32px;display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;font-size:13px;color:var(--navy-300)">
+<span>© 2026 The Landry Apartment Homes · Managed by <a href="https://reapmgt.com" style="color:var(--navy-300);text-decoration:underline">Reap Management</a></span>
+<span>Equal Housing Opportunity</span>
+</div>
+</div>
+</footer>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showPromoBar&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Header&quot;},&quot;showMarquee&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Header&quot;},&quot;defaultDaypart&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;morning&quot;,&quot;afternoon&quot;,&quot;evening&quot;],&quot;default&quot;:&quot;auto&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;A Day at The Landry&quot;}}">
+class Component extends DCLogic {
+  state = { daypart: null, filter: 'all', name: '', phone: '', moveIn: '', beds: null, submitted: false };
+  componentDidMount() { this.icons(); }
+  componentDidUpdate() { this.icons(); }
+  icons() { try { window.lucide && window.lucide.createIcons(); } catch (e) {} }
+  go(id) {
+    return (e) => {
+      if (e && e.preventDefault) e.preventDefault();
+      const el = id === '__top' ? document.body : document.getElementById(id);
+      if (!el) return;
+      const y = id === '__top' ? 0 : el.getBoundingClientRect().top + window.pageYOffset - 78;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    };
+  }
+  DAYS = {
+    morning: { time: 'Morning · 7a', title: 'Slow coffee, open kitchen.', body: "Mornings here start easy — a quick session in the fitness center, then coffee and breakfast in the clubhouse's open kitchen while the light comes through warm.", img: 'assets/photos/clubhouse-kitchen.jpg', chips: ['Clubhouse Kitchen', 'Fitness Center', 'Business Center'] },
+    afternoon: { time: 'Afternoon · 2p', title: 'Pool first, everything else later.', body: 'Resort-style water, loungers in the sun, and a shaded pergola when you need it. The playground keeps the little ones busy while the grills warm up.', img: 'assets/photos/pool-courtyard.jpg', chips: ['Swimming Pool', 'Playground', 'Grill Pergola'] },
+    evening: { time: 'Evening · 7p', title: 'Wind down in good company.', body: 'Dinner off the grill, a lap around the dog park, and a slow landing in the clubhouse lounge — leather chairs, warm lamps, neighbors who feel like friends.', img: 'assets/photos/clubhouse-lounge.jpg', chips: ['Clubhouse Lounge', 'Dog Park', 'Picnic Areas'] }
+  };
+  PLANS = [
+    { id: 'a1', name: 'Plan A1', type: 'One Bedroom', beds: '1', meta: '1 bed · 1 bath', sqft: '650 sq ft', price: 'From $1,049', img: 'assets/photos/clubhouse-lounge.jpg' },
+    { id: 'a2', name: 'Plan A2', type: 'One Bedroom', beds: '1', meta: '1 bed · 1 bath', sqft: '650 sq ft', price: 'From $1,124', img: 'assets/photos/clubhouse-kitchen.jpg' },
+    { id: 'b1', name: 'Plan B1', type: 'Two Bedroom', beds: '2', meta: '2 bed · 1 bath', sqft: '884 sq ft', price: 'From $1,354', img: 'assets/photos/pool-courtyard.jpg' },
+    { id: 'b2', name: 'Plan B2', type: 'Two Bedroom', beds: '2', meta: '2 bed · 2 bath', sqft: '990 sq ft', price: 'From $1,414', img: 'assets/photos/building-exterior.jpg' },
+    { id: 'b3', name: 'Plan B3', type: 'Two Bedroom', beds: '2', meta: '2 bed · 2 bath', sqft: '990 sq ft', price: 'From $1,424', img: 'assets/photos/clubhouse-lounge.jpg' }
+  ];
+
+  autoDaypart() {
+    const p = this.props.defaultDaypart ?? 'auto';
+    if (p !== 'auto') return p;
+    const h = new Date().getHours();
+    return h < 11 ? 'morning' : h < 17 ? 'afternoon' : 'evening';
+  }
+  chipStyle(sel) {
+    return sel
+      ? { bg: 'var(--navy-700)', c: 'var(--cream-50)', bd: 'var(--navy-700)' }
+      : { bg: 'var(--white)', c: 'var(--navy-800)', bd: 'var(--stone-300)' };
+  }
+
+  renderVals() {
+    const s = this.state;
+    const dp = s.daypart || this.autoDaypart();
+    const day = this.DAYS[dp];
+    const h = new Date().getHours();
+    const greet = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+    const filtered = this.PLANS.filter((p) => s.filter === 'all' || p.beds === s.filter);
+    const moveInLong = s.moveIn ? new Date(s.moveIn + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) : '';
+    return {
+      promoOn: this.props.showPromoBar ?? true,
+      marqueeOn: this.props.showMarquee ?? true,
+      greeting: greet + ' from North Arlington, Texas',
+      heroGhostBtn: { style: { background: 'var(--cream-50)', color: 'var(--navy-800)', borderColor: 'var(--cream-50)' } },
+      goTop: this.go('__top'), goDay: this.go('day'), goAmenities: this.go('amenities'), goPlans: this.go('plans'), goGallery: this.go('gallery'), goNeighborhood: this.go('neighborhood'), goTour: this.go('tour'),
+      dayPanels: ['morning', 'afternoon', 'evening'].map((k) => {
+        const d = this.DAYS[k], sel = k === dp;
+        return { time: d.time, title: d.title, body: d.body, img: d.img, chips: d.chips, pick: () => this.setState({ daypart: k }), grow: sel ? 2.7 : 1, mh: sel ? '320px' : '0px', op: sel ? 1 : 0 };
+      }),
+      planFilters: [['all', 'All Plans'], ['1', 'One Bedroom'], ['2', 'Two Bedroom']].map(([k, label]) => {
+        const st = this.chipStyle(s.filter === k);
+        return { label, pick: () => this.setState({ filter: k }), ...st };
+      }),
+      filteredPlans: filtered.map((p) => ({ ...p, onTour: () => { this.setState({ beds: p.beds, submitted: false }); this.go('tour')(); } })),
+      bedTabs: [['1', 'One Bedroom'], ['2', 'Two Bedroom'], ['any', 'Not Sure Yet']].map(([k, label]) => {
+        const st = this.chipStyle(s.beds === k);
+        return { label, pick: () => this.setState({ beds: k }), ...st };
+      }),
+      onName: (e) => this.setState({ name: e.target.value }),
+      onPhone: (e) => this.setState({ phone: e.target.value }),
+      onMoveIn: (e) => this.setState({ moveIn: e.target.value }),
+      submitTour: () => this.setState({ submitted: true }),
+      resetTour: () => this.setState({ submitted: false }),
+      submitted: s.submitted,
+      notSubmitted: !s.submitted,
+      confirmLine: (s.name ? 'Thanks, ' + s.name + ' — we' : 'We') + "'ll reach out shortly" + (s.phone ? ' by text at ' + s.phone : '') + ' to confirm a time that suits you' + (moveInLong ? ', with homes ready around ' + moveInLong : '') + '.'
+    };
+  }
+}
+</script>
+</body>
+</html>

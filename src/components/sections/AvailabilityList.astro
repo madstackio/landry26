@@ -1,0 +1,201 @@
+---
+import type { AvailableUnit, Section } from "../../lib/cms";
+
+interface Props {
+  section: Section;
+  locale?: string | null;
+}
+
+const { section, locale = null } = Astro.props;
+const { data } = section;
+const units: AvailableUnit[] = Array.isArray(data.items) ? data.items : [];
+const count: number = typeof data.count === "number" ? data.count : units.length;
+
+const fmtLocale = locale || "en-US";
+const money = new Intl.NumberFormat(fmtLocale, {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0,
+});
+const dateFmt = new Intl.DateTimeFormat(fmtLocale, { month: "short", day: "numeric" });
+
+function availability(u: AvailableUnit) {
+  if (u.available_now) return "Available now";
+  if (u.available_date) return `Available ${dateFmt.format(new Date(u.available_date + "T12:00:00"))}`;
+  return "Coming soon";
+}
+---
+
+<section class="availability">
+  <div class="container">
+    <div class="head">
+      <div class="eyebrow">Available Now</div>
+      {data.heading ? <h2 set:html={data.heading} /> : <h2>Homes ready when you are.</h2>}
+    </div>
+    {
+      units.length > 0 ? (
+        <div class="grid">
+          {units.map((u) => (
+            <div class="card">
+              <div class="top">
+                <span class="unit">#{u.unit_number}</span>
+                <span class="badge" class:list={{ now: u.available_now }}>
+                  {availability(u)}
+                </span>
+              </div>
+              {u.floor_plan && <div class="plan">{u.floor_plan.name}</div>}
+              <div class="meta">
+                {u.bedrooms === 0 ? "Studio" : `${u.bedrooms} bed`} · {u.bathrooms} bath
+                {u.square_footage ? ` · ${u.square_footage} sq ft` : ""}
+              </div>
+              <div class="bottom">
+                {u.market_rent ? (
+                  <span class="price">
+                    {money.format(u.market_rent)}
+                    <span class="permo">/mo</span>
+                  </span>
+                ) : (
+                  <span class="permo">Call for pricing</span>
+                )}
+                <a href="#schedule-a-tour" class="btn btn--sm btn--secondary">
+                  Tour This Home
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div class="empty">
+          <p>
+            Every home is spoken for at the moment — but availability changes daily. Reach out and
+            we'll let you know the moment something opens up.
+          </p>
+          <a href="#schedule-a-tour" class="btn">Join the Waitlist</a>
+        </div>
+      )
+    }
+    {count > units.length && <p class="note">Showing {units.length} of {count} available homes.</p>}
+  </div>
+</section>
+
+<style>
+  .availability {
+    padding: 104px 0;
+  }
+
+  .head {
+    margin-bottom: 40px;
+  }
+
+  h2 {
+    font-size: 44px;
+    margin: 14px 0 0;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+  }
+
+  .card {
+    background: var(--white);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: transform 160ms ease, box-shadow 160ms ease;
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-raised);
+  }
+
+  .top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .unit {
+    font-family: var(--font-display);
+    font-size: 24px;
+    color: var(--navy-900);
+  }
+
+  .badge {
+    font-size: 12px;
+    font-weight: var(--weight-semibold);
+    color: var(--slate-600);
+    background: var(--cream-100);
+    border-radius: var(--radius-pill);
+    padding: 5px 12px;
+    white-space: nowrap;
+  }
+
+  .badge.now {
+    color: var(--success-600);
+    background: var(--success-100);
+  }
+
+  .plan {
+    font-size: 15px;
+    font-weight: var(--weight-semibold);
+    color: var(--navy-700);
+  }
+
+  .meta {
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  .bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 14px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .price {
+    font-weight: var(--weight-bold);
+    color: var(--navy-700);
+    font-size: 19px;
+  }
+
+  .permo {
+    font-weight: var(--weight-regular);
+    color: var(--slate-600);
+    font-size: 14px;
+  }
+
+  .empty {
+    background: var(--white);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: 48px 40px;
+    text-align: center;
+    max-width: 620px;
+    margin: 0 auto;
+  }
+
+  .empty p {
+    font-size: 17px;
+    color: var(--charcoal-700);
+    margin: 0 0 22px;
+  }
+
+  .note {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin: 18px 4px 0;
+  }
+</style>

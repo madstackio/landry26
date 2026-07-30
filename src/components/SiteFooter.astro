@@ -1,0 +1,241 @@
+---
+import type { Globals, PageSummary } from "../lib/cms";
+import type { Anchor } from "../lib/anchors";
+
+interface Props {
+  globals: Globals;
+  pages: PageSummary[];
+  locale?: string | null;
+  anchors?: Anchor[];
+}
+
+const { globals, pages, locale = null, anchors = [] } = Astro.props;
+const prefix = locale ? `/${locale}` : "";
+const homeHref = prefix || "/";
+const logo = globals.logo_url || "/assets/logo.svg";
+const siteName = globals.name || "The Landry";
+const contact = globals.contact ?? {};
+const social = globals.social ?? {};
+const phoneHref = contact.phone ? `tel:${contact.phone.replace(/[^\d+]/g, "")}` : null;
+
+const sorted = [...pages].sort((a, b) => a.order_index - b.order_index);
+const multiPage = sorted.length > 1;
+const navLinks = multiPage
+  ? sorted.map((p, i) => ({ href: i === 0 ? homeHref : `${prefix}/${p.slug}`, label: p.title }))
+  : anchors.map((a) => ({ href: `#${a.id}`, label: a.label }));
+
+const addressLines = [
+  contact.address_line1,
+  contact.address_line2,
+  [contact.city, contact.state].filter(Boolean).join(", ") +
+    (contact.zip ? ` ${contact.zip}` : ""),
+].filter((l) => l && l.trim());
+
+const officeHours = (contact.office_hours ?? "")
+  .split(/\r?\n/)
+  .map((l) => l.trim())
+  .filter(Boolean);
+
+const SOCIAL_ICONS: Record<string, string> = {
+  facebook: "facebook",
+  instagram: "instagram",
+  twitter: "twitter",
+  linkedin: "linkedin",
+  youtube: "youtube",
+  tiktok: "music-2",
+};
+const socialLinks = Object.entries(SOCIAL_ICONS)
+  .map(([key, icon]) => ({ key, icon, url: (social as Record<string, string | null>)[key] }))
+  .filter((s) => s.url);
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container cols">
+    <div>
+      <img src={logo} alt={siteName} class="logo" />
+      {
+        addressLines.length > 0 && (
+          <p class="address">
+            {addressLines.map((line, i) => (
+              <>
+                {i > 0 && <br />}
+                {line}
+              </>
+            ))}
+          </p>
+        )
+      }
+      {
+        socialLinks.length > 0 && (
+          <div class="social">
+            {socialLinks.map((s) => (
+              <a href={s.url} aria-label={s.key} target="_blank" rel="noopener">
+                <i data-lucide={s.icon} style="width:20px;height:20px" />
+              </a>
+            ))}
+          </div>
+        )
+      }
+    </div>
+    <div>
+      <div class="eyebrow col-title">Explore</div>
+      <div class="links">
+        {navLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+      </div>
+    </div>
+    <div>
+      <div class="eyebrow col-title">Contact</div>
+      <div class="links">
+        {contact.phone && <a href={phoneHref}>{contact.phone}</a>}
+        {contact.email && <a href={`mailto:${contact.email}`}>{contact.email}</a>}
+        {globals.portal_url && <a href={globals.portal_url}>Resident Portal</a>}
+      </div>
+    </div>
+    {
+      officeHours.length > 0 && (
+        <div>
+          <div class="eyebrow col-title">Office Hours</div>
+          <div class="links muted">
+            {officeHours.map((line) => (
+              <span>{line}</span>
+            ))}
+          </div>
+        </div>
+      )
+    }
+  </div>
+  <div class="bottom">
+    <div class="container bottom-row">
+      <span>
+        © {year} {siteName} · Managed by{" "}
+        <a href="https://reapmgt.com" class="mgmt">Reap Management</a>
+      </span>
+      <span class="center">Equal Housing Opportunity</span>
+      <span class="right">
+        Powered by <a href="https://lucid.madstack.io" class="mgmt">LucidOS</a>
+      </span>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--navy-900);
+    color: var(--navy-100);
+    padding: 72px 0 0;
+  }
+
+  .cols {
+    padding-bottom: 56px;
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
+    gap: 48px;
+  }
+
+  .logo {
+    height: 64px;
+    display: block;
+    filter: brightness(0) invert(0.96);
+    margin-bottom: 18px;
+  }
+
+  .address {
+    font-size: 15px;
+    line-height: 1.6;
+    margin: 0;
+    color: var(--navy-150);
+  }
+
+  .social {
+    display: flex;
+    gap: 14px;
+    margin-top: 18px;
+  }
+
+  .social a {
+    color: var(--navy-150);
+  }
+
+  .social a:hover {
+    color: var(--cream-50);
+  }
+
+  .col-title {
+    color: var(--slate-400);
+    margin-bottom: 16px;
+  }
+
+  .links {
+    display: grid;
+    gap: 10px;
+    font-size: 15px;
+  }
+
+  .links a {
+    color: var(--navy-100);
+  }
+
+  .links a:hover {
+    color: var(--cream-50);
+  }
+
+  .links.muted {
+    color: var(--navy-150);
+  }
+
+  .bottom {
+    border-top: 1px solid rgba(250, 248, 245, 0.14);
+  }
+
+  .bottom-row {
+    padding-top: 22px;
+    padding-bottom: 22px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 24px;
+    font-size: 13px;
+    color: var(--navy-300);
+  }
+
+  .bottom-row .center {
+    text-align: center;
+  }
+
+  .bottom-row .right {
+    text-align: right;
+  }
+
+  @media (max-width: 720px) {
+    .bottom-row {
+      grid-template-columns: 1fr;
+      gap: 8px;
+      text-align: center;
+    }
+
+    .bottom-row .center,
+    .bottom-row .right {
+      text-align: center;
+    }
+  }
+
+  .mgmt {
+    color: var(--navy-300);
+    text-decoration: underline;
+  }
+
+  @media (max-width: 920px) {
+    .cols {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .cols {
+      grid-template-columns: 1fr;
+      gap: 36px;
+    }
+  }
+</style>

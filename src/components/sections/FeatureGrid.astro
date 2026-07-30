@@ -1,0 +1,279 @@
+---
+import type { Section } from "../../lib/cms";
+
+interface Props {
+  section: Section;
+}
+
+const { data } = Astro.props.section;
+const features: {
+  icon?: string;
+  image?: string;
+  title: string;
+  description?: string;
+  link_url?: string;
+}[] = Array.isArray(data.features) ? data.features : [];
+
+// The template's signature "day at The Landry" interaction needs imagery;
+// image-less feature grids fall back to simple cards.
+const asPanels = features.length > 1 && features.every((f) => f.image);
+---
+
+<section class="features" class:list={{ dark: asPanels }}>
+  <div class="container">
+    <div class="head">
+      <div>
+        {data.heading && <h2 set:html={data.heading} />}
+      </div>
+      {data.subheading && <p class="sub" set:html={data.subheading} />}
+    </div>
+    {
+      asPanels ? (
+        <div class="panels" data-feature-panels>
+          {features.map((f, i) => (
+            <div class="panel" class:list={{ "is-active": i === 0 }} tabindex="0" role="button">
+              <div class="panel-bg" style={`background-image:url('${f.image}')`} />
+              <div class="panel-scrim" />
+              <div class="panel-text">
+                <h3>{f.title}</h3>
+                <div class="panel-body">
+                  {f.description && <p>{f.description}</p>}
+                  {f.link_url && (
+                    <a href={f.link_url} class="panel-link">
+                      Learn more
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div class="cards">
+          {features.map((f) => (
+            <div class="card">
+              {f.image && <img class="card-img" src={f.image} alt="" loading="lazy" />}
+              {f.icon && !f.image && (
+                <span class="card-icon">
+                  <i data-lucide={f.icon} style="width:26px;height:26px" />
+                </span>
+              )}
+              <h3>{f.title}</h3>
+              {f.description && <p>{f.description}</p>}
+              {f.link_url && <a href={f.link_url}>Learn more</a>}
+            </div>
+          ))}
+        </div>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .features {
+    padding: 104px 0;
+  }
+
+  .features.dark {
+    background: var(--navy-50);
+  }
+
+  .head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 32px;
+    flex-wrap: wrap;
+    margin-bottom: 48px;
+  }
+
+  h2 {
+    font-size: 44px;
+    margin: 14px 0 0;
+    max-width: 520px;
+    text-wrap: pretty;
+  }
+
+  .sub {
+    font-size: 16px;
+    color: var(--text-muted);
+    max-width: 320px;
+    margin: 0;
+    text-align: right;
+  }
+
+  /* Expanding panels */
+  .panels {
+    display: flex;
+    gap: 10px;
+    height: 560px;
+  }
+
+  .panel {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    box-shadow: var(--shadow-card);
+    flex-shrink: 1;
+    flex-basis: 0%;
+    min-width: 0;
+    flex-grow: 1;
+    transition: flex-grow 550ms var(--ease-standard);
+  }
+
+  .panel.is-active {
+    flex-grow: 2.7;
+  }
+
+  .panel-bg {
+    position: absolute;
+    inset: 0;
+    background-color: var(--navy-100);
+    background-size: cover;
+    background-position: center;
+  }
+
+  .panel-scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(11, 44, 64, 0.06) 35%, rgba(11, 44, 64, 0.85) 100%);
+  }
+
+  .panel-text {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 30px;
+  }
+
+  .panel-text h3 {
+    font-family: var(--font-display);
+    font-size: 31px;
+    color: var(--cream-50);
+    margin: 10px 0 0;
+    text-wrap: pretty;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .panel.is-active .panel-text h3 {
+    white-space: normal;
+  }
+
+  .panel-body {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 550ms ease, opacity 450ms ease 120ms;
+  }
+
+  .panel.is-active .panel-body {
+    max-height: 320px;
+    opacity: 1;
+  }
+
+  .panel-body p {
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--navy-100);
+    margin: 12px 0 0;
+    max-width: 440px;
+  }
+
+  .panel-link {
+    display: inline-block;
+    margin-top: 14px;
+    color: var(--cream-50);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* Card fallback */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+  }
+
+  .card {
+    background: var(--white);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: 28px;
+    transition: transform 160ms ease, box-shadow 160ms ease;
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-raised);
+  }
+
+  .card-img {
+    width: calc(100% + 56px);
+    margin: -28px -28px 20px;
+    height: 180px;
+    object-fit: cover;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+
+  .card-icon {
+    color: var(--navy-500);
+    display: inline-flex;
+    margin-bottom: 14px;
+  }
+
+  .card h3 {
+    font-family: var(--font-display);
+    font-size: 24px;
+    color: var(--navy-900);
+    margin: 0 0 8px;
+  }
+
+  .card p {
+    font-size: 15px;
+    color: var(--text-muted);
+    margin: 0;
+  }
+
+  @media (max-width: 860px) {
+    .panels {
+      flex-direction: column;
+      height: auto;
+    }
+
+    .panel {
+      min-height: 96px;
+      flex-basis: auto;
+    }
+
+    .panel.is-active {
+      min-height: 360px;
+    }
+
+    .sub {
+      text-align: left;
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-feature-panels]").forEach((group) => {
+    const panels = Array.from(group.querySelectorAll<HTMLElement>(".panel"));
+    const activate = (panel: HTMLElement) => {
+      panels.forEach((p) => p.classList.toggle("is-active", p === panel));
+    };
+    panels.forEach((panel) => {
+      panel.addEventListener("click", () => activate(panel));
+      panel.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          activate(panel);
+        }
+      });
+    });
+  });
+</script>

@@ -1,0 +1,394 @@
+---
+import type { FormField, FormSchema } from "../lib/cms";
+
+interface Props {
+  form: FormSchema;
+  fallbackRecaptchaKey?: string | null;
+}
+
+const { form, fallbackRecaptchaKey = null } = Astro.props;
+const recaptchaKey = form.recaptcha_required
+  ? form.recaptcha_site_key || fallbackRecaptchaKey
+  : null;
+
+function inputType(field: FormField) {
+  switch (field.type) {
+    case "email":
+      return "email";
+    case "phone":
+    case "tel":
+      return "tel";
+    case "date":
+      return "date";
+    case "number":
+      return "number";
+    default:
+      return "text";
+  }
+}
+
+// Display labels come from option_labels (translated); submitted values are
+// always the canonical options[i].
+function optionPairs(field: FormField) {
+  const options = field.options ?? [];
+  return options.map((value, i) => ({
+    value,
+    label: field.option_labels?.[i] ?? value,
+  }));
+}
+
+const hasOptions = (f: FormField) => Array.isArray(f.options) && f.options.length > 0;
+---
+
+<div class="form-card">
+  <div class="form-title">{form.name}</div>
+  <p class="form-sub">Thirty seconds — we'll confirm by text.</p>
+
+  <form
+    data-cms-form
+    data-submit-url={form.submit_url}
+    data-redirect-url={form.redirect_url || ""}
+    data-recaptcha-key={recaptchaKey || ""}
+    novalidate
+  >
+    <div class="fields">
+      {
+        form.fields.map((field) => {
+          if (hasOptions(field) && field.type === "radio") {
+            return (
+              <fieldset class="chips-field">
+                <legend class="eyebrow chips-legend">{field.label}</legend>
+                <div class="chips">
+                  {optionPairs(field).map((o) => (
+                    <label class="chip chip-radio">
+                      <input
+                        type="radio"
+                        name={field.id}
+                        value={o.value}
+                        required={field.required}
+                      />
+                      <span>{o.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            );
+          }
+          if (hasOptions(field) && field.type === "checkbox") {
+            return (
+              <fieldset class="chips-field">
+                <legend class="eyebrow chips-legend">{field.label}</legend>
+                <div class="chips">
+                  {optionPairs(field).map((o) => (
+                    <label class="chip chip-radio">
+                      <input type="checkbox" name={field.id} value={o.value} />
+                      <span>{o.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            );
+          }
+          if (hasOptions(field)) {
+            return (
+              <label class="field">
+                <span class="field__label">{field.label}</span>
+                <select name={field.id} required={field.required}>
+                  <option value="">Select…</option>
+                  {optionPairs(field).map((o) => (
+                    <option value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+              </label>
+            );
+          }
+          if (field.type === "textarea") {
+            return (
+              <label class="field field--full">
+                <span class="field__label">{field.label}</span>
+                <textarea name={field.id} rows="4" required={field.required} />
+              </label>
+            );
+          }
+          if (field.type === "checkbox") {
+            return (
+              <label class="check-field">
+                <input type="checkbox" name={field.id} value="true" required={field.required} />
+                <span>{field.label}</span>
+              </label>
+            );
+          }
+          return (
+            <label class="field">
+              <span class="field__label">{field.label}</span>
+              <input
+                class="field__input"
+                type={inputType(field)}
+                name={field.id}
+                required={field.required}
+              />
+            </label>
+          );
+        })
+      }
+    </div>
+
+    <div class="errors" data-form-errors hidden></div>
+
+    <button type="submit" class="btn btn--lg submit">Request Tour</button>
+    {
+      recaptchaKey && (
+        <p class="fine-print">
+          One confirmation text. No spam, no obligation. Protected by reCAPTCHA —{" "}
+          <a href="https://policies.google.com/privacy">Privacy</a> &{" "}
+          <a href="https://policies.google.com/terms">Terms</a>
+        </p>
+      )
+    }
+  </form>
+
+  <div class="success" data-form-success hidden>
+    <div class="success-title">Request received.</div>
+    <p>We'll reach out shortly to confirm a time that suits you.</p>
+  </div>
+</div>
+
+{
+  recaptchaKey && (
+    <script is:inline src={`https://www.google.com/recaptcha/api.js?render=${recaptchaKey}`} />
+  )
+}
+
+<style>
+  .form-card {
+    background: var(--white);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: 40px;
+    text-align: left;
+  }
+
+  .form-title {
+    font-family: var(--font-display);
+    font-size: 27px;
+    color: var(--navy-900);
+    margin-bottom: 6px;
+  }
+
+  .form-sub {
+    font-size: 15px;
+    color: var(--text-muted);
+    margin: 0 0 28px;
+  }
+
+  .fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px 20px;
+    margin-bottom: 30px;
+  }
+
+  .field--full,
+  .chips-field,
+  .check-field {
+    grid-column: 1 / -1;
+  }
+
+  .chips-field {
+    border: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .chips-legend {
+    font-size: 12px;
+    margin-bottom: 10px;
+    padding: 0;
+  }
+
+  .chips {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .chip-radio {
+    position: relative;
+    display: inline-flex;
+  }
+
+  .chip-radio input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+    cursor: pointer;
+  }
+
+  .chip-radio:has(input:checked) {
+    background: var(--navy-700);
+    color: var(--cream-50);
+    border-color: var(--navy-700);
+  }
+
+  .chip-radio:has(input:focus-visible) {
+    box-shadow: var(--shadow-focus);
+  }
+
+  .check-field {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-size: 15px;
+    color: var(--charcoal-700);
+  }
+
+  .errors {
+    background: var(--error-100);
+    color: var(--error-600);
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  .errors ul {
+    margin: 0;
+    padding-left: 18px;
+  }
+
+  .submit {
+    width: 100%;
+  }
+
+  .fine-print {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 16px 0 0;
+    line-height: 1.5;
+  }
+
+  .success {
+    padding: 16px 0 0;
+  }
+
+  .success-title {
+    font-family: var(--font-display);
+    font-size: 30px;
+    color: var(--navy-900);
+    margin-bottom: 12px;
+  }
+
+  .success p {
+    font-size: 17px;
+    color: var(--charcoal-700);
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 560px) {
+    .fields {
+      grid-template-columns: 1fr;
+    }
+
+    .form-card {
+      padding: 28px;
+    }
+  }
+</style>
+
+<script>
+  function collectData(formEl: HTMLFormElement): Record<string, unknown> {
+    const data: Record<string, unknown> = {};
+    const formData = new FormData(formEl);
+    const multi = new Set<string>();
+    formEl
+      .querySelectorAll<HTMLInputElement>('input[type="checkbox"][value]:not([value="true"])')
+      .forEach((el) => multi.add(el.name));
+    for (const [key, value] of formData.entries()) {
+      if (multi.has(key)) {
+        const arr = (data[key] as unknown[]) ?? [];
+        arr.push(value);
+        data[key] = arr;
+      } else {
+        data[key] = value;
+      }
+    }
+    // Unchecked boolean checkboxes submit nothing — normalize to false.
+    formEl
+      .querySelectorAll<HTMLInputElement>('input[type="checkbox"][value="true"]')
+      .forEach((el) => {
+        data[el.name] = el.checked;
+      });
+    return data;
+  }
+
+  async function recaptchaToken(key: string): Promise<string | null> {
+    const grecaptcha = (window as any).grecaptcha;
+    if (!grecaptcha) return null;
+    await new Promise<void>((resolve) => grecaptcha.ready(resolve));
+    return grecaptcha.execute(key, { action: "submit" });
+  }
+
+  document.querySelectorAll<HTMLFormElement>("[data-cms-form]").forEach((formEl) => {
+    formEl.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!formEl.reportValidity()) return;
+      const errorsEl = formEl.querySelector<HTMLElement>("[data-form-errors]");
+      const submitBtn = formEl.querySelector<HTMLButtonElement>('button[type="submit"]');
+      errorsEl?.setAttribute("hidden", "");
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Sending…";
+      }
+      try {
+        const body: Record<string, unknown> = {
+          data: collectData(formEl),
+          source_url: location.href,
+        };
+        const key = formEl.dataset.recaptchaKey;
+        if (key) {
+          const token = await recaptchaToken(key);
+          if (token) body.recaptcha_token = token;
+        }
+        const res = await fetch(formEl.dataset.submitUrl!, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const payload = await res.json().catch(() => ({}));
+        if (res.ok && payload.ok !== false) {
+          const redirect = payload.redirect_url || formEl.dataset.redirectUrl;
+          if (redirect) {
+            location.href = redirect;
+            return;
+          }
+          formEl.setAttribute("hidden", "");
+          formEl.closest(".form-card")
+            ?.querySelector("[data-form-success]")
+            ?.removeAttribute("hidden");
+        } else {
+          const details: string[] = Array.isArray(payload.details)
+            ? payload.details
+            : [payload.error || "Something went wrong — please call us instead."];
+          if (errorsEl) {
+            errorsEl.innerHTML = `<ul>${details
+              .map((d) => `<li>${String(d).replace(/</g, "&lt;")}</li>`)
+              .join("")}</ul>`;
+            errorsEl.removeAttribute("hidden");
+          }
+        }
+      } catch {
+        if (errorsEl) {
+          errorsEl.textContent = "We couldn't send your request — please try again or call us.";
+          errorsEl.removeAttribute("hidden");
+        }
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Request Tour";
+        }
+      }
+    });
+  });
+</script>

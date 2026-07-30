@@ -1,0 +1,166 @@
+---
+import type { Globals, PageSummary } from "../lib/cms";
+import type { Anchor } from "../lib/anchors";
+
+interface Props {
+  globals: Globals;
+  pages: PageSummary[];
+  locale?: string | null;
+  anchors?: Anchor[];
+}
+
+const { globals, pages, locale = null, anchors = [] } = Astro.props;
+const prefix = locale ? `/${locale}` : "";
+const homeHref = prefix || "/";
+const logo = globals.logo_url || "/assets/logo.svg";
+const siteName = globals.name || "The Landry";
+const phone = globals.contact?.phone ?? null;
+const phoneHref = phone ? `tel:${phone.replace(/[^\d+]/g, "")}` : null;
+
+const sorted = [...pages].sort((a, b) => a.order_index - b.order_index);
+const multiPage = sorted.length > 1;
+const navLinks = multiPage
+  ? sorted.map((p, i) => ({ href: i === 0 ? homeHref : `${prefix}/${p.slug}`, label: p.title }))
+  : anchors.map((a) => ({ href: `#${a.id}`, label: a.label }));
+
+const tourPage = sorted.find((p) => /tour|contact|schedule/i.test(p.slug));
+const tourHref = tourPage && multiPage ? `${prefix}/${tourPage.slug}` : "#schedule-a-tour";
+---
+
+<header class="site-header">
+  <div class="bar container">
+    <a href={homeHref} class="logo-link">
+      <img src={logo} alt={siteName} class="logo" />
+    </a>
+    <nav class="nav" aria-label="Main">
+      {navLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+    </nav>
+    <div class="actions">
+      {phone && <a href={phoneHref} class="phone">{phone}</a>}
+      <a href={tourHref} class="btn">Schedule a Tour</a>
+      <button class="menu-toggle" aria-label="Menu" aria-expanded="false">
+        <i data-lucide="menu" style="width:24px;height:24px"></i>
+      </button>
+    </div>
+  </div>
+  <nav class="mobile-nav" aria-label="Main mobile" hidden>
+    {navLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+    {phone && <a href={phoneHref}>{phone}</a>}
+  </nav>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--cream-50);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .bar {
+    height: 78px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .logo {
+    height: 54px;
+    display: block;
+  }
+
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: 34px;
+  }
+
+  .nav a {
+    font-size: 15px;
+    font-weight: var(--weight-semibold);
+    color: var(--navy-800);
+  }
+
+  .nav a:hover {
+    color: var(--navy-500);
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .phone {
+    font-size: 15px;
+    font-weight: var(--weight-semibold);
+    color: var(--navy-700);
+  }
+
+  .menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--navy-800);
+    cursor: pointer;
+    padding: 6px;
+  }
+
+  .mobile-nav {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 32px 20px;
+    border-top: 1px solid var(--border-subtle);
+    background: var(--cream-50);
+  }
+
+  .mobile-nav a {
+    font-size: 16px;
+    font-weight: var(--weight-semibold);
+    color: var(--navy-800);
+    padding: 10px 0;
+  }
+
+  @media (max-width: 920px) {
+    .nav {
+      display: none;
+    }
+
+    .phone {
+      display: none;
+    }
+
+    .menu-toggle {
+      display: inline-flex;
+    }
+
+    .mobile-nav:not([hidden]) {
+      display: flex;
+    }
+  }
+</style>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>(".menu-toggle");
+  const mobileNav = document.querySelector<HTMLElement>(".mobile-nav");
+  toggle?.addEventListener("click", () => {
+    const open = mobileNav?.hasAttribute("hidden");
+    if (!mobileNav) return;
+    if (open) {
+      mobileNav.removeAttribute("hidden");
+      toggle.setAttribute("aria-expanded", "true");
+    } else {
+      mobileNav.setAttribute("hidden", "");
+      toggle.setAttribute("aria-expanded", "false");
+    }
+  });
+  mobileNav?.addEventListener("click", (e) => {
+    if ((e.target as HTMLElement).tagName === "A") {
+      mobileNav.setAttribute("hidden", "");
+      toggle?.setAttribute("aria-expanded", "false");
+    }
+  });
+</script>

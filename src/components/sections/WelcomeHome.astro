@@ -1,0 +1,127 @@
+---
+import type { Section } from "../../lib/cms";
+
+interface Props {
+  section: Section;
+}
+
+// Custom `welcome-home` type: two-column intro with framed photo + stat row.
+const { data } = Astro.props.section;
+const stats: { metric: string; stat_line: string }[] = Array.isArray(data.stats)
+  ? data.stats
+  : [];
+---
+
+<section class="welcome">
+  <div class="container">
+    <div class="cols">
+      <div>
+        {data.byline && <div class="eyebrow">{data.byline}</div>}
+        {data.heading && <h2 set:html={data.heading} />}
+        {data.content && <div class="richtext content" set:html={data.content} />}
+      </div>
+      {
+        data.image && (
+          <div class="frame">
+            <div class="frame-line" />
+            <img src={data.image} alt="" loading="lazy" />
+          </div>
+        )
+      }
+    </div>
+    {
+      stats.length > 0 && (
+        <div class="stats" style={`grid-template-columns:repeat(${Math.min(stats.length, 4)},1fr)`}>
+          {stats.map((s) => (
+            <div>
+              <div class="metric">{s.metric}</div>
+              <div class="eyebrow stat-line">{s.stat_line}</div>
+            </div>
+          ))}
+        </div>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .welcome {
+    padding: 112px 0 96px;
+  }
+
+  .cols {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 72px;
+    align-items: center;
+  }
+
+  h2 {
+    font-size: 46px;
+    margin: 16px 0 20px;
+    max-width: 480px;
+    text-wrap: pretty;
+  }
+
+  .content {
+    font-size: 17px;
+    line-height: 1.65;
+    color: var(--charcoal-700);
+    max-width: 480px;
+  }
+
+  .frame {
+    position: relative;
+    padding: 0 0 24px 24px;
+  }
+
+  .frame-line {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 82%;
+    height: 82%;
+    border: 1px solid var(--navy-150);
+    border-radius: var(--radius-lg);
+  }
+
+  .frame img {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-raised);
+  }
+
+  .stats {
+    display: grid;
+    gap: 32px;
+    margin-top: 88px;
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 48px;
+  }
+
+  .metric {
+    font-family: var(--font-display);
+    font-size: 52px;
+    color: var(--navy-700);
+    line-height: 1.1;
+  }
+
+  .stat-line {
+    margin-top: 8px;
+  }
+
+  @media (max-width: 920px) {
+    .cols {
+      grid-template-columns: 1fr;
+      gap: 48px;
+    }
+
+    .stats {
+      grid-template-columns: 1fr 1fr !important;
+      margin-top: 56px;
+    }
+  }
+</style>

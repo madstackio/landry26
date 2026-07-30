@@ -1,0 +1,92 @@
+---
+import type { Section } from "../../lib/cms";
+
+interface Props {
+  section: Section;
+}
+
+const { data } = Astro.props.section;
+const items: { question: string; answer: string }[] = Array.isArray(data.items) ? data.items : [];
+---
+
+<section class="faq">
+  <div class="container inner">
+    {data.heading && <h2 set:html={data.heading} />}
+    <div class="items">
+      {
+        items.map((item) => (
+          <details>
+            <summary>
+              <span>{item.question}</span>
+              <span class="chev">
+                <i data-lucide="chevron-down" style="width:20px;height:20px" />
+              </span>
+            </summary>
+            <div class="richtext answer" set:html={item.answer} />
+          </details>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .faq {
+    padding: 104px 0;
+    background: var(--cream-100);
+  }
+
+  .inner {
+    max-width: 820px;
+  }
+
+  h2 {
+    font-size: 44px;
+    margin: 0 0 36px;
+    text-wrap: pretty;
+  }
+
+  details {
+    border-top: 1px solid var(--border-strong);
+    background: transparent;
+  }
+
+  details:last-child {
+    border-bottom: 1px solid var(--border-strong);
+  }
+
+  summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 22px 8px;
+    cursor: pointer;
+    font-family: var(--font-display);
+    font-size: 22px;
+    color: var(--navy-900);
+    list-style: none;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .chev {
+    color: var(--navy-300);
+    transition: transform var(--dur-base) ease;
+    display: inline-flex;
+  }
+
+  details[open] .chev {
+    transform: rotate(180deg);
+  }
+
+  .answer {
+    padding: 0 8px 26px;
+    font-size: 16px;
+    line-height: 1.65;
+    color: var(--charcoal-700);
+    max-width: 700px;
+  }
+</style>

@@ -1,0 +1,102 @@
+---
+import Base from "../layouts/Base.astro";
+import SectionRenderer from "../components/SectionRenderer.astro";
+import { cms, CmsError } from "../lib/cms";
+import type { Globals, Page, PageSummary, Special } from "../lib/cms";
+import { navAnchors } from "../lib/anchors";
+
+const previewToken = Astro.locals.previewToken;
+
+// Friendly setup screen until .env is configured (no CMS key committed).
+const configured = Boolean(import.meta.env.CMS_API_URL && import.meta.env.CMS_API_KEY);
+
+let globals: Globals | null = null;
+let pages: PageSummary[] = [];
+let specials: Special[] = [];
+let page: Page | null = null;
+let locale: string | null = null;
+let path = "/";
+let notFound = false;
+
+if (configured) {
+  // Locale routing needs the locale list first; globals is CDN-cached so the
+  // extra request is cheap.
+  const baseGlobals = await cms<Globals>("/globals", { previewToken });
+
+  const segments = (Astro.params.slug ?? "").split("/").filter(Boolean);
+  if (segments.length && baseGlobals.locales?.includes(segments[0]!)) {
+    locale = segments.shift()!;
+  }
+  const slugPath = segments.join("/");
+  path = slugPath ? `/${slugPath}` : "/";
+  const opts = { previewToken, locale };
+
+  const [localizedGlobals, pagesRes, specialsRes] = await Promise.all([
+    locale ? cms<Globals>("/globals", opts) : Promise.resolve(baseGlobals),
+    cms<{ pages: PageSummary[] }>("/pages", opts),
+    cms<{ specials: Special[] }>("/specials", opts).catch(() => ({ specials: [] })),
+  ]);
+  globals = localizedGlobals;
+  pages = [...pagesRes.pages].sort((a, b) => a.order_index - b.order_index);
+  specials = specialsRes.specials;
+
+  // The root path renders the first page in the CMS ordering.
+  const slug = slugPath || pages[0]?.slug;
+  if (!slug) {
+    notFound = true;
+  } else {
+    try {
+      page = await cms<Page>(`/pages/${slug}`, opts);
+    } catch (err) {
+      if (err instanceof CmsError && err.status === 404) notFound = true;
+      else throw err;
+    }
+  }
+}
+
+if (notFound) Astro.response.status = 404;
+const anchors = page ? navAnchors(page.sections) : [];
+---
+
+{
+  !configured ? (
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <title>The Landry — setup required</title>
+      </head>
+      <body style="font-family:system-ui;max-width:640px;margin:80px auto;padding:0 24px;line-height:1.6">
+        <h1>Almost there</h1>
+        <p>
+          The LucidOS CMS connection isn't configured yet. Copy <code>.env.example</code> to{" "}
+          <code>.env</code> and set <code>CMS_API_URL</code> and <code>CMS_API_KEY</code>, then
+          restart the dev server. See <code>LUCIDOS.md</code> for details.
+        </p>
+      </body>
+    </html>
+  ) : notFound || !page ? (
+    <Base globals={globals!} pages={pages} locale={locale} path={path}>
+      <section class="container" style="padding:140px 32px;text-align:center">
+        <h1 style="font-size:52px;margin:0 0 16px">Page not found</h1>
+        <p style="font-size:17px;color:var(--text-muted);margin:0 0 32px">
+          The page you're looking for isn't here — but home might be.
+        </p>
+        <a href={locale ? `/${locale}` : "/"} class="btn btn--lg">
+          Back to The Landry
+        </a>
+      </section>
+    </Base>
+  ) : (
+    <Base
+      globals={globals!}
+      pages={pages}
+      page={page}
+      specials={specials}
+      locale={locale}
+      path={path}
+      anchors={anchors}
+    >
+      <SectionRenderer sections={page.sections} globals={globals!} locale={locale} />
+    </Base>
+  )
+}
