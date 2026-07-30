@@ -7,12 +7,14 @@ interface Props {
 
 const { data } = Astro.props.section;
 // Gallery items may be objects ({ image, caption }) or bare URL strings.
+const MAX_PHOTOS = 15;
 const images: { image: string; caption?: string }[] = (Array.isArray(data.images)
   ? data.images
   : []
 )
   .map((item: any) => (typeof item === "string" ? { image: item } : item))
-  .filter((item: any) => item && item.image);
+  .filter((item: any) => item && item.image)
+  .slice(0, MAX_PHOTOS);
 
 // Mosaic masonry: mixed tile sizes on a 4-column grid, dense-packed into one
 // even rectangle. The repeating span pattern is nudged so the total cell
