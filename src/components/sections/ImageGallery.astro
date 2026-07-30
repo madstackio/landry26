@@ -6,8 +6,8 @@ interface Props {
 }
 
 const { data } = Astro.props.section;
-// Gallery items may be objects ({ image, caption }) or bare URL strings.
 const MAX_PHOTOS = 15;
+// Gallery items may be objects ({ image, caption }) or bare URL strings.
 const images: { image: string; caption?: string }[] = (Array.isArray(data.images)
   ? data.images
   : []
@@ -16,23 +16,71 @@ const images: { image: string; caption?: string }[] = (Array.isArray(data.images
   .filter((item: any) => item && item.image)
   .slice(0, MAX_PHOTOS);
 
-// Mosaic masonry: mixed tile sizes on a 4-column grid, dense-packed into one
-// even rectangle. The repeating span pattern is nudged so the total cell
-// count divides evenly by the column count — no ragged bottom row.
-const spans = images.map((_, i) => {
-  if (i % 8 === 0) return { w: 2, h: 2 };
-  if (i % 8 === 3) return { w: 1, h: 2 };
-  if (i % 8 === 5) return { w: 2, h: 1 };
-  return { w: 1, h: 1 };
-});
-let cells = spans.reduce((sum, s) => sum + s.w * s.h, 0);
-for (let i = spans.length - 1; i >= 0 && cells % 4 !== 0; i--) {
-  const s = spans[i]!;
-  if (s.w === 1 && s.h === 1) {
-    s.w = 2;
-    cells += 1;
-  }
+/*
+ * Mosaic with explicit tile placement — no auto-flow, so no holes ever.
+ * Repeating 5-image blocks each fill a 4-column × 2-row rectangle exactly;
+ * leftover images (< 5) fill single rows, with the final tile stretched to
+ * close out its row. The result is always one even rectangle.
+ */
+interface Tile {
+  col: number;
+  row: number;
+  w: number;
+  h: number;
 }
+const BLOCKS: { dc: number; dr: number; w: number; h: number }[][] = [
+  // big square left, four singles right
+  [
+    { dc: 0, dr: 0, w: 2, h: 2 },
+    { dc: 2, dr: 0, w: 1, h: 1 },
+    { dc: 3, dr: 0, w: 1, h: 1 },
+    { dc: 2, dr: 1, w: 1, h: 1 },
+    { dc: 3, dr: 1, w: 1, h: 1 },
+  ],
+  // tall left, stacked wides, singles right
+  [
+    { dc: 0, dr: 0, w: 1, h: 2 },
+    { dc: 1, dr: 0, w: 2, h: 1 },
+    { dc: 3, dr: 0, w: 1, h: 1 },
+    { dc: 1, dr: 1, w: 2, h: 1 },
+    { dc: 3, dr: 1, w: 1, h: 1 },
+  ],
+  // four singles left, big square right
+  [
+    { dc: 0, dr: 0, w: 1, h: 1 },
+    { dc: 1, dr: 0, w: 1, h: 1 },
+    { dc: 2, dr: 0, w: 2, h: 2 },
+    { dc: 0, dr: 1, w: 1, h: 1 },
+    { dc: 1, dr: 1, w: 1, h: 1 },
+  ],
+];
+
+const tiles: Tile[] = [];
+let placed = 0;
+let row = 1;
+let block = 0;
+while (images.length - placed >= 5) {
+  for (const t of BLOCKS[block % BLOCKS.length]!) {
+    tiles.push({ col: t.dc + 1, row: row + t.dr, w: t.w, h: t.h });
+  }
+  placed += 5;
+  row += 2;
+  block++;
+}
+const leftover = images.length - placed;
+for (let k = 0; k < leftover; k++) {
+  const isLast = k === leftover - 1;
+  tiles.push({
+    col: (k % 4) + 1,
+    row: row + Math.floor(k / 4),
+    w: isLast ? 4 - (k % 4) : 1,
+    h: 1,
+  });
+}
+
+// On mobile everything reflows to a 2-column auto grid; an odd count gets a
+// double-width lead tile so the rectangle stays even there too.
+const oddCount = images.length % 2 === 1;
 ---
 
 <section class="gallery">
@@ -46,12 +94,18 @@ for (let i = spans.length - 1; i >= 0 && cells % 4 !== 0; i--) {
   <div class="container">
     <div class="mosaic">
       {
-        images.map((img, i) => (
-          <figure class:list={{ w2: spans[i]!.w === 2, h2: spans[i]!.h === 2 }}>
-            <img src={img.image} alt={img.caption || ""} loading="lazy" />
-            {img.caption && <figcaption>{img.caption}</figcaption>}
-          </figure>
-        ))
+        images.map((img, i) => {
+          const t = tiles[i]!;
+          return (
+            <figure
+              class:list={{ lead: oddCount && i === 0 }}
+              style={`--c:${t.col};--r:${t.row};--w:${t.w};--h:${t.h}`}
+            >
+              <img src={img.image} alt={img.caption || ""} loading="lazy" />
+              {img.caption && <figcaption>{img.caption}</figcaption>}
+            </figure>
+          );
+        })
       }
     </div>
   </div>
@@ -88,7 +142,6 @@ for (let i = spans.length - 1; i >= 0 && cells % 4 !== 0; i--) {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-auto-rows: 190px;
-    grid-auto-flow: dense;
     gap: 10px;
   }
 
@@ -97,14 +150,8 @@ for (let i = spans.length - 1; i >= 0 && cells % 4 !== 0; i--) {
     overflow: hidden;
     position: relative;
     border-radius: var(--radius-md);
-  }
-
-  figure.w2 {
-    grid-column: span 2;
-  }
-
-  figure.h2 {
-    grid-row: span 2;
+    grid-column: var(--c) / span var(--w);
+    grid-row: var(--r) / span var(--h);
   }
 
   img {
@@ -146,8 +193,17 @@ for (let i = spans.length - 1; i >= 0 && cells % 4 !== 0; i--) {
   @media (max-width: 640px) {
     .mosaic {
       grid-template-columns: repeat(2, 1fr);
-      grid-auto-rows: 130px;
+      grid-auto-rows: 140px;
       gap: 6px;
+    }
+
+    figure {
+      grid-column: auto / span 1;
+      grid-row: auto / span 1;
+    }
+
+    figure.lead {
+      grid-column: span 2;
     }
   }
 </style>
