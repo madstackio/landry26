@@ -122,8 +122,9 @@ const year = new Date().getFullYear();
 
 <style>
   .site-footer {
-    background: var(--navy-900);
-    color: var(--navy-100);
+    background: var(--cream-100);
+    color: var(--charcoal-700);
+    border-top: 1px solid var(--border-subtle);
     padding: 72px 0 0;
   }
 
@@ -137,7 +138,6 @@ const year = new Date().getFullYear();
   .logo {
     height: 64px;
     display: block;
-    filter: brightness(0) invert(0.96);
     margin-bottom: 18px;
   }
 
@@ -145,7 +145,7 @@ const year = new Date().getFullYear();
     font-size: 15px;
     line-height: 1.6;
     margin: 0;
-    color: var(--navy-150);
+    color: var(--text-muted);
   }
 
   .social {
@@ -155,15 +155,14 @@ const year = new Date().getFullYear();
   }
 
   .social a {
-    color: var(--navy-150);
+    color: var(--slate-600);
   }
 
   .social a:hover {
-    color: var(--cream-50);
+    color: var(--navy-800);
   }
 
   .col-title {
-    color: var(--slate-400);
     margin-bottom: 16px;
   }
 
@@ -174,19 +173,19 @@ const year = new Date().getFullYear();
   }
 
   .links a {
-    color: var(--navy-100);
+    color: var(--navy-800);
   }
 
   .links a:hover {
-    color: var(--cream-50);
+    color: var(--navy-500);
   }
 
   .links.muted {
-    color: var(--navy-150);
+    color: var(--text-muted);
   }
 
   .bottom {
-    border-top: 1px solid rgba(250, 248, 245, 0.14);
+    border-top: 1px solid var(--border-strong);
   }
 
   .bottom-row {
@@ -197,7 +196,7 @@ const year = new Date().getFullYear();
     align-items: center;
     gap: 24px;
     font-size: 13px;
-    color: var(--navy-300);
+    color: var(--text-muted);
   }
 
   .bottom-row .center {
@@ -222,7 +221,7 @@ const year = new Date().getFullYear();
   }
 
   .mgmt {
-    color: var(--navy-300);
+    color: var(--slate-600);
     text-decoration: underline;
   }
 
