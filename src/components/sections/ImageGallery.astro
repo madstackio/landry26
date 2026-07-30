@@ -99,7 +99,7 @@ const oddCount = images.length % 2 === 1;
           return (
             <figure
               class:list={{ lead: oddCount && i === 0 }}
-              style={`--c:${t.col};--r:${t.row};--w:${t.w};--h:${t.h}`}
+              style={`grid-column:${t.col} / span ${t.w};grid-row:${t.row} / span ${t.h}`}
             >
               <img src={img.image} alt={img.caption || ""} loading="lazy" />
               {img.caption && <figcaption>{img.caption}</figcaption>}
@@ -150,8 +150,6 @@ const oddCount = images.length % 2 === 1;
     overflow: hidden;
     position: relative;
     border-radius: var(--radius-md);
-    grid-column: var(--c) / span var(--w);
-    grid-row: var(--r) / span var(--h);
   }
 
   img {
@@ -197,13 +195,14 @@ const oddCount = images.length % 2 === 1;
       gap: 6px;
     }
 
+    /* !important so the mobile reflow beats the inline desktop placement */
     figure {
-      grid-column: auto / span 1;
-      grid-row: auto / span 1;
+      grid-column: auto / span 1 !important;
+      grid-row: auto / span 1 !important;
     }
 
     figure.lead {
-      grid-column: span 2;
+      grid-column: span 2 !important;
     }
   }
 </style>
