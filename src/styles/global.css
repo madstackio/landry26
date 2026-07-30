@@ -6,6 +6,15 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+/* Keep anchored sections clear of the sticky/fixed header */
+[id] {
+  scroll-margin-top: 90px;
+}
+
 body {
   margin: 0;
   background: var(--surface-page);

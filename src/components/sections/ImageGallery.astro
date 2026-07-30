@@ -13,6 +13,24 @@ const images: { image: string; caption?: string }[] = (Array.isArray(data.images
 )
   .map((item: any) => (typeof item === "string" ? { image: item } : item))
   .filter((item: any) => item && item.image);
+
+// Mosaic masonry: mixed tile sizes on a 4-column grid, dense-packed into one
+// even rectangle. The repeating span pattern is nudged so the total cell
+// count divides evenly by the column count — no ragged bottom row.
+const spans = images.map((_, i) => {
+  if (i % 8 === 0) return { w: 2, h: 2 };
+  if (i % 8 === 3) return { w: 1, h: 2 };
+  if (i % 8 === 5) return { w: 2, h: 1 };
+  return { w: 1, h: 1 };
+});
+let cells = spans.reduce((sum, s) => sum + s.w * s.h, 0);
+for (let i = spans.length - 1; i >= 0 && cells % 4 !== 0; i--) {
+  const s = spans[i]!;
+  if (s.w === 1 && s.h === 1) {
+    s.w = 2;
+    cells += 1;
+  }
+}
 ---
 
 <section class="gallery">
@@ -24,10 +42,10 @@ const images: { image: string; caption?: string }[] = (Array.isArray(data.images
     <p class="note">Every photo is the real thing — warm Texas light included.</p>
   </div>
   <div class="container">
-    <div class="masonry">
+    <div class="mosaic">
       {
-        images.map((img) => (
-          <figure>
+        images.map((img, i) => (
+          <figure class:list={{ w2: spans[i]!.w === 2, h2: spans[i]!.h === 2 }}>
             <img src={img.image} alt={img.caption || ""} loading="lazy" />
             {img.caption && <figcaption>{img.caption}</figcaption>}
           </figure>
@@ -64,23 +82,35 @@ const images: { image: string; caption?: string }[] = (Array.isArray(data.images
     text-align: right;
   }
 
-  /* Masonry via CSS columns — items keep their natural aspect ratios */
-  .masonry {
-    columns: 4 260px;
-    column-gap: 10px;
+  .mosaic {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: 190px;
+    grid-auto-flow: dense;
+    gap: 10px;
   }
 
   figure {
-    margin: 0 0 10px;
+    margin: 0;
     overflow: hidden;
     position: relative;
     border-radius: var(--radius-md);
-    break-inside: avoid;
+  }
+
+  figure.w2 {
+    grid-column: span 2;
+  }
+
+  figure.h2 {
+    grid-row: span 2;
   }
 
   img {
     width: 100%;
+    height: 100%;
     display: block;
+    object-fit: cover;
+    background: var(--navy-100);
     transition: transform 300ms ease;
   }
 
@@ -105,14 +135,17 @@ const images: { image: string; caption?: string }[] = (Array.isArray(data.images
     opacity: 1;
   }
 
-  @media (max-width: 640px) {
-    .masonry {
-      columns: 2 140px;
-      column-gap: 6px;
+  @media (max-width: 1000px) {
+    .mosaic {
+      grid-auto-rows: 150px;
     }
+  }
 
-    figure {
-      margin-bottom: 6px;
+  @media (max-width: 640px) {
+    .mosaic {
+      grid-template-columns: repeat(2, 1fr);
+      grid-auto-rows: 130px;
+      gap: 6px;
     }
   }
 </style>

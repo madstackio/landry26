@@ -3,7 +3,7 @@ import type { Globals, Page, PageSummary, Special } from "../lib/cms";
 import type { Anchor } from "../lib/anchors";
 import SiteHeader from "../components/SiteHeader.astro";
 import SiteFooter from "../components/SiteFooter.astro";
-import PromoBar from "../components/PromoBar.astro";
+import SpecialsModal from "../components/SpecialsModal.astro";
 import "../styles/global.css";
 
 interface Props {
@@ -56,6 +56,8 @@ const tracking = globals.tracking ?? {};
 const gtagId = tracking.ga4_measurement_id || tracking.google_ads_id || null;
 const jsonLdItems = [...(globals.json_ld ?? []), ...(page?.json_ld ?? [])];
 const htmlLang = locale ?? globals.default_locale ?? "en";
+// Pages that open with a hero get the transparent overlay header.
+const heroFirst = /hero/.test(page?.sections?.[0]?.type ?? "");
 ---
 
 <!doctype html>
@@ -163,12 +165,18 @@ const htmlLang = locale ?? globals.default_locale ?? "en";
       )
     }
 
-    <PromoBar specials={specials} />
-    <SiteHeader globals={globals} pages={pages} locale={locale} anchors={anchors} />
+    <SiteHeader
+      globals={globals}
+      pages={pages}
+      locale={locale}
+      anchors={anchors}
+      transparent={heroFirst}
+    />
     <main>
       <slot />
     </main>
     <SiteFooter globals={globals} pages={pages} locale={locale} anchors={anchors} />
+    <SpecialsModal specials={specials} />
 
     <script is:inline set:html={`window.lucide&&window.lucide.createIcons();`}></script>
     {/* LucidOS AI leasing chat — renders only when enabled for the org */}

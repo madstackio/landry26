@@ -7,9 +7,11 @@ interface Props {
   pages: PageSummary[];
   locale?: string | null;
   anchors?: Anchor[];
+  /** Overlay the hero with a transparent header (pages whose first section is a hero). */
+  transparent?: boolean;
 }
 
-const { globals, pages, locale = null, anchors = [] } = Astro.props;
+const { globals, pages, locale = null, anchors = [], transparent = false } = Astro.props;
 const prefix = locale ? `/${locale}` : "";
 const homeHref = prefix || "/";
 const logo = globals.logo_url || "/assets/logo.svg";
@@ -27,7 +29,7 @@ const tourPage = sorted.find((p) => /tour|contact|schedule/i.test(p.slug));
 const tourHref = tourPage && multiPage ? `${prefix}/${tourPage.slug}` : "#schedule-a-tour";
 ---
 
-<header class="site-header">
+<header class="site-header" class:list={{ overlay: transparent }} data-site-header>
   <div class="bar container">
     <a href={homeHref} class="logo-link">
       <img src={logo} alt={siteName} class="logo" />
@@ -56,6 +58,40 @@ const tourHref = tourPage && multiPage ? `${prefix}/${tourPage.slug}` : "#schedu
     z-index: 50;
     background: var(--cream-50);
     border-bottom: 1px solid var(--border-subtle);
+    transition: background 250ms ease, border-color 250ms ease;
+  }
+
+  /* Transparent over the hero, solid once scrolled (or with the menu open) */
+  .site-header.overlay {
+    position: fixed;
+    left: 0;
+    right: 0;
+    background: transparent;
+    border-bottom-color: transparent;
+  }
+
+  /* Legibility gradient behind the floating header, fades once solid */
+  .site-header.overlay::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 150px;
+    background: linear-gradient(180deg, rgba(11, 44, 64, 0.6) 0%, rgba(11, 44, 64, 0) 100%);
+    pointer-events: none;
+    z-index: -1;
+    opacity: 1;
+    transition: opacity 250ms ease;
+  }
+
+  .site-header.overlay.is-solid::before {
+    opacity: 0;
+  }
+
+  .site-header.overlay.is-solid {
+    background: var(--cream-50);
+    border-bottom-color: var(--border-subtle);
   }
 
   .bar {
@@ -69,6 +105,12 @@ const tourHref = tourPage && multiPage ? `${prefix}/${tourPage.slug}` : "#schedu
   .logo {
     height: 54px;
     display: block;
+    transition: filter 250ms ease;
+  }
+
+  /* Recolor the logo to cream while the header floats over the hero photo */
+  .site-header.overlay:not(.is-solid) .logo {
+    filter: brightness(0) invert(0.96);
   }
 
   .nav {
@@ -77,26 +119,47 @@ const tourHref = tourPage && multiPage ? `${prefix}/${tourPage.slug}` : "#schedu
     gap: 34px;
   }
 
-  .nav a {
+  .nav a,
+  .phone {
     font-size: 15px;
     font-weight: var(--weight-semibold);
     color: var(--navy-800);
+    transition: color 250ms ease;
+  }
+
+  .phone {
+    color: var(--navy-700);
   }
 
   .nav a:hover {
     color: var(--navy-500);
   }
 
+  .site-header.overlay:not(.is-solid) .nav a,
+  .site-header.overlay:not(.is-solid) .phone,
+  .site-header.overlay:not(.is-solid) .menu-toggle {
+    color: var(--cream-50);
+  }
+
+  .site-header.overlay:not(.is-solid) .nav a:hover {
+    color: var(--navy-150);
+  }
+
+  .site-header.overlay:not(.is-solid) :global(.btn) {
+    background: var(--cream-50);
+    border-color: var(--cream-50);
+    color: var(--navy-800);
+  }
+
+  .site-header.overlay:not(.is-solid) :global(.btn:hover) {
+    background: var(--white);
+    border-color: var(--white);
+  }
+
   .actions {
     display: flex;
     align-items: center;
     gap: 18px;
-  }
-
-  .phone {
-    font-size: 15px;
-    font-weight: var(--weight-semibold);
-    color: var(--navy-700);
   }
 
   .menu-toggle {
@@ -144,23 +207,36 @@ const tourHref = tourPage && multiPage ? `${prefix}/${tourPage.slug}` : "#schedu
 </style>
 
 <script>
-  const toggle = document.querySelector<HTMLButtonElement>(".menu-toggle");
-  const mobileNav = document.querySelector<HTMLElement>(".mobile-nav");
+  const header = document.querySelector<HTMLElement>("[data-site-header]");
+  const toggle = header?.querySelector<HTMLButtonElement>(".menu-toggle");
+  const mobileNav = header?.querySelector<HTMLElement>(".mobile-nav");
+
+  let menuOpen = false;
+  const syncSolid = () => {
+    if (!header?.classList.contains("overlay")) return;
+    header.classList.toggle("is-solid", menuOpen || window.scrollY > 24);
+  };
+  syncSolid();
+  window.addEventListener("scroll", syncSolid, { passive: true });
+
   toggle?.addEventListener("click", () => {
-    const open = mobileNav?.hasAttribute("hidden");
     if (!mobileNav) return;
-    if (open) {
+    menuOpen = mobileNav.hasAttribute("hidden");
+    if (menuOpen) {
       mobileNav.removeAttribute("hidden");
       toggle.setAttribute("aria-expanded", "true");
     } else {
       mobileNav.setAttribute("hidden", "");
       toggle.setAttribute("aria-expanded", "false");
     }
+    syncSolid();
   });
   mobileNav?.addEventListener("click", (e) => {
     if ((e.target as HTMLElement).tagName === "A") {
       mobileNav.setAttribute("hidden", "");
       toggle?.setAttribute("aria-expanded", "false");
+      menuOpen = false;
+      syncSolid();
     }
   });
 </script>
