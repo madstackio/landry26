@@ -32,7 +32,11 @@ const {
 const siteName = globals.name || "The Landry";
 const meta = page?.meta ?? null;
 const title = meta?.title || (page ? `${page.title} · ${siteName}` : siteName);
-const description = meta?.description ?? null;
+const description = meta?.description || null;
+// keywords may arrive as a string or an array of strings
+const keywords = Array.isArray(meta?.keywords)
+  ? (meta?.keywords as string[]).join(", ")
+  : meta?.keywords || null;
 const canonical = meta?.canonical_url ?? new URL(path, Astro.site).href;
 const ogImage = meta?.og_image_url ?? null;
 const favicon = globals.favicon_url ?? "/assets/logo.svg";
@@ -67,7 +71,7 @@ const heroFirst = /hero/.test(page?.sections?.[0]?.type ?? "");
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     {description && <meta name="description" content={description} />}
-    {meta?.keywords && <meta name="keywords" content={meta.keywords} />}
+    {keywords && <meta name="keywords" content={keywords} />}
     {meta?.noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="canonical" href={canonical} />
     <link rel="icon" href={favicon} />

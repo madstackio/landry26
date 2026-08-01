@@ -107,7 +107,7 @@ export interface Page {
   meta?: {
     title?: string | null;
     description?: string | null;
-    keywords?: string | null;
+    keywords?: string | string[] | null;
     og_image_url?: string | null;
     canonical_url?: string | null;
     noindex?: boolean | null;
