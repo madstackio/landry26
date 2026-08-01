@@ -22,7 +22,8 @@ const sorted = [...pages].sort((a, b) => a.order_index - b.order_index);
 const multiPage = sorted.length > 1;
 const navLinks = multiPage
   ? sorted.map((p, i) => ({ href: i === 0 ? homeHref : `${prefix}/${p.slug}`, label: p.title }))
-  : anchors.map((a) => ({ href: `#${a.id}`, label: a.label }));
+  : anchors.map((a) => ({ href: `${prefix}/#${a.id}`, label: a.label }));
+navLinks.push({ href: `${prefix}/virtual-tours`, label: "Virtual Tours" });
 
 const addressLines = [
   contact.address_line1,

@@ -1,0 +1,450 @@
+---
+import Base from "../layouts/Base.astro";
+import { cms } from "../lib/cms";
+import type { FloorPlan, Globals, Page, PageSummary, Special } from "../lib/cms";
+import { navAnchors } from "../lib/anchors";
+
+const previewToken = Astro.locals.previewToken;
+const configured = Boolean(import.meta.env.CMS_API_URL && import.meta.env.CMS_API_KEY);
+if (!configured) return Astro.redirect("/");
+
+/**
+ * Matterport 3D walkthroughs, matched to floor plans by their model specs.
+ * Thumbnails come from Matterport's player API; card details (photos,
+ * pricing, availability) are enriched from the live CMS floor-plan data.
+ */
+const TOURS = [
+  { id: "cLLQYbBh1x3", plan: "a1", name: "Plan A1", specs: "1 bed · 1 bath · 650 sq ft" },
+  { id: "877LSJS19jq", plan: "a2", name: "Plan A2", specs: "1 bed · 1 bath · 650 sq ft" },
+  { id: "w3xhr3roqYr", plan: "b1", name: "Plan B1", specs: "2 bed · 1 bath · 884 sq ft" },
+  { id: "ivXmg4kv5hL", plan: "b2", name: "Plan B2", specs: "2 bed · 2 bath · 990 sq ft" },
+  { id: "xvNwB6U33S9", plan: "b3", name: "Plan B3", specs: "2 bed · 2 bath · 990 sq ft" },
+];
+
+const opts = { previewToken };
+const [globals, pagesRes, specialsRes, plansRes] = await Promise.all([
+  cms<Globals>("/globals", opts),
+  cms<{ pages: PageSummary[] }>("/pages", opts),
+  cms<{ specials: Special[] }>("/specials", opts).catch(() => ({ specials: [] })),
+  cms<{ floor_plans: FloorPlan[] }>("/floor-plans", opts).catch(() => ({ floor_plans: [] })),
+]);
+const pages = [...pagesRes.pages].sort((a, b) => a.order_index - b.order_index);
+
+// Anchor nav mirrors the homepage sections so the header works from here too.
+let anchors: ReturnType<typeof navAnchors> = [];
+const homeSlug = pages[0]?.slug;
+if (homeSlug) {
+  try {
+    const home = await cms<Page>(`/pages/${homeSlug}`, opts);
+    anchors = navAnchors(home.sections);
+  } catch {
+    /* nav simply shows fewer links */
+  }
+}
+
+const planBySlug = new Map(plansRes.floor_plans.map((p) => [p.slug, p]));
+const money = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0,
+});
+
+const cards = TOURS.map((t) => {
+  const plan = planBySlug.get(t.plan);
+  return {
+    ...t,
+    thumb: `https://my.matterport.com/api/v2/player/models/${t.id}/thumb/`,
+    rent: plan?.starting_rent ?? null,
+    available: plan?.available_count ?? 0,
+  };
+});
+
+const meta: Page = {
+  slug: "virtual-tours",
+  title: "Virtual Tours",
+  meta: {
+    title: `Virtual Tours · ${globals.name || "The Landry"}`,
+    description:
+      "Walk through The Landry's one and two bedroom floor plans in immersive 3D — tour every home style from wherever you are.",
+  },
+  sections: [],
+};
+---
+
+<Base
+  globals={globals}
+  pages={pages}
+  page={meta}
+  specials={specialsRes.specials}
+  path="/virtual-tours"
+  anchors={anchors}
+>
+  <section class="tours">
+    <div class="container head">
+      <div>
+        <div class="eyebrow">Virtual Tours</div>
+        <h1>Walk through, from wherever you are.</h1>
+      </div>
+      <p class="note">
+        Every floor plan in immersive 3D — wander room to room like you're already home.
+      </p>
+    </div>
+    <div class="container grid">
+      {
+        cards.map((c) => (
+          <button class="card" data-tour={c.id} data-tour-name={c.name} aria-haspopup="dialog">
+            <span class="media">
+              <img src={c.thumb} alt={`3D tour of ${c.name}`} loading="lazy" />
+              <span class="play">
+                <i data-lucide="rotate-3d" style="width:22px;height:22px" />
+                <span>Start 3D Tour</span>
+              </span>
+            </span>
+            <span class="body">
+              <span class="name">{c.name}</span>
+              <span class="specs">{c.specs}</span>
+              <span class="meta-row">
+                {c.rent ? (
+                  <span class="rent">
+                    From {money.format(c.rent)}
+                    <span class="permo">/mo</span>
+                  </span>
+                ) : (
+                  <span class="permo">Call for pricing</span>
+                )}
+                {c.available > 0 && <span class="avail">{c.available} available</span>}
+              </span>
+            </span>
+          </button>
+        ))
+      }
+    </div>
+    <div class="container cta-band">
+      <div>
+        <h2>Prefer the real thing?</h2>
+        <p>Twenty minutes, no pressure, same-day when available.</p>
+      </div>
+      <a href="/#schedule-a-tour" class="btn btn--lg">Schedule a Tour</a>
+    </div>
+  </section>
+
+  <div class="tour-modal" data-tour-modal role="dialog" aria-modal="true" aria-label="3D tour" hidden>
+    <div class="modal-shell">
+      <div class="modal-bar">
+        <span class="modal-title" data-tour-title>3D Tour</span>
+        <button class="modal-close" data-tour-close aria-label="Close tour">
+          <i data-lucide="x" style="width:20px;height:20px"></i>
+        </button>
+      </div>
+      <div class="frame-wrap">
+        <iframe
+          data-tour-frame
+          title="Matterport 3D tour"
+          allow="xr-spatial-tracking; fullscreen; vr"
+          allowfullscreen
+        ></iframe>
+      </div>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .tours {
+    padding: 104px 0 112px;
+  }
+
+  .head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 32px;
+    flex-wrap: wrap;
+    margin-bottom: 48px;
+  }
+
+  h1 {
+    font-size: clamp(40px, 5vw, 54px);
+    margin: 14px 0 0;
+    max-width: 620px;
+    text-wrap: pretty;
+  }
+
+  .note {
+    font-size: 16px;
+    color: var(--text-muted);
+    max-width: 320px;
+    margin: 0;
+    text-align: right;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    text-align: left;
+    background: var(--white);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+    cursor: pointer;
+    font-family: var(--font-body);
+    transition: transform 160ms ease, box-shadow 160ms ease;
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-raised);
+  }
+
+  .card:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+  }
+
+  .media {
+    position: relative;
+    display: block;
+    aspect-ratio: 16 / 10;
+    background: var(--navy-100);
+    overflow: hidden;
+  }
+
+  .media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 300ms ease;
+  }
+
+  .card:hover .media img {
+    transform: scale(1.045);
+  }
+
+  .play {
+    position: absolute;
+    left: 14px;
+    bottom: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(11, 44, 64, 0.82);
+    color: var(--cream-50);
+    font-size: 13px;
+    font-weight: var(--weight-semibold);
+    border-radius: var(--radius-pill);
+    padding: 9px 16px;
+    backdrop-filter: blur(4px);
+  }
+
+  .body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 22px 24px 24px;
+  }
+
+  .name {
+    font-family: var(--font-display);
+    font-size: 25px;
+    color: var(--navy-900);
+  }
+
+  .specs {
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  .meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 10px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .rent {
+    font-weight: var(--weight-bold);
+    color: var(--navy-700);
+    font-size: 17px;
+  }
+
+  .permo {
+    font-weight: var(--weight-regular);
+    color: var(--slate-600);
+    font-size: 13px;
+  }
+
+  .avail {
+    font-size: 12px;
+    font-weight: var(--weight-semibold);
+    color: var(--success-600);
+    background: var(--success-100);
+    border-radius: var(--radius-pill);
+    padding: 4px 10px;
+  }
+
+  .cta-band {
+    margin-top: 72px;
+    background: var(--navy-900);
+    border-radius: var(--radius-lg);
+    padding: 48px 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+
+  .cta-band h2 {
+    font-size: 34px;
+    color: var(--cream-50);
+    margin: 0 0 6px;
+  }
+
+  .cta-band p {
+    font-size: 16px;
+    color: var(--navy-100);
+    margin: 0;
+  }
+
+  /* Tour modal */
+  .tour-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgba(11, 44, 64, 0.78);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    transition: opacity 250ms ease;
+  }
+
+  .tour-modal.is-open {
+    opacity: 1;
+  }
+
+  .tour-modal[hidden] {
+    display: none;
+  }
+
+  .modal-shell {
+    width: min(1200px, 100%);
+    background: var(--charcoal-900);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-raised);
+    transform: translateY(16px);
+    transition: transform 250ms var(--ease-standard);
+  }
+
+  .tour-modal.is-open .modal-shell {
+    transform: none;
+  }
+
+  .modal-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 12px 12px 20px;
+  }
+
+  .modal-title {
+    font-family: var(--font-display);
+    font-size: 18px;
+    color: var(--cream-50);
+  }
+
+  .modal-close {
+    background: rgba(250, 248, 245, 0.1);
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--cream-50);
+  }
+
+  .modal-close:hover {
+    background: rgba(250, 248, 245, 0.22);
+  }
+
+  .frame-wrap {
+    aspect-ratio: 16 / 9;
+    max-height: calc(100vh - 120px);
+  }
+
+  .frame-wrap iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+  }
+
+  @media (max-width: 640px) {
+    .note {
+      text-align: left;
+    }
+
+    .cta-band {
+      padding: 36px 28px;
+    }
+
+    .frame-wrap {
+      aspect-ratio: 3 / 4;
+    }
+  }
+</style>
+
+<script>
+  const modal = document.querySelector<HTMLElement>("[data-tour-modal]");
+  const frame = modal?.querySelector<HTMLIFrameElement>("[data-tour-frame]");
+  const titleEl = modal?.querySelector<HTMLElement>("[data-tour-title]");
+
+  const close = () => {
+    if (!modal) return;
+    modal.classList.remove("is-open");
+    document.body.style.overflow = "";
+    setTimeout(() => {
+      modal.setAttribute("hidden", "");
+      // Unload the walkthrough so audio/CPU stop with the modal.
+      if (frame) frame.src = "about:blank";
+    }, 250);
+  };
+
+  document.querySelectorAll<HTMLButtonElement>("[data-tour]").forEach((card) => {
+    card.addEventListener("click", () => {
+      if (!modal || !frame) return;
+      frame.src = `https://my.matterport.com/show/?m=${card.dataset.tour}&play=1`;
+      if (titleEl) titleEl.textContent = `${card.dataset.tourName} — 3D Tour`;
+      modal.removeAttribute("hidden");
+      requestAnimationFrame(() => modal.classList.add("is-open"));
+      document.body.style.overflow = "hidden";
+      (window as any).lucide?.createIcons();
+      modal.querySelector<HTMLButtonElement>("[data-tour-close]")?.focus();
+    });
+  });
+
+  modal?.querySelector("[data-tour-close]")?.addEventListener("click", close);
+  modal?.addEventListener("click", (e) => {
+    if (e.target === modal) close();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && modal && !modal.hasAttribute("hidden")) close();
+  });
+</script>

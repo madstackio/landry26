@@ -18,15 +18,19 @@ const logo = globals.logo_url || "/assets/logo.svg";
 const siteName = globals.name || "The Landry";
 const phone = globals.contact?.phone ?? null;
 const phoneHref = phone ? `tel:${phone.replace(/[^\d+]/g, "")}` : null;
+const portalUrl = globals.portal_url ?? null;
 
 const sorted = [...pages].sort((a, b) => a.order_index - b.order_index);
 const multiPage = sorted.length > 1;
+// Anchor links are prefixed with the home path so they also work from
+// standalone routes like /virtual-tours.
 const navLinks = multiPage
   ? sorted.map((p, i) => ({ href: i === 0 ? homeHref : `${prefix}/${p.slug}`, label: p.title }))
-  : anchors.map((a) => ({ href: `#${a.id}`, label: a.label }));
+  : anchors.map((a) => ({ href: `${prefix}/#${a.id}`, label: a.label }));
+navLinks.push({ href: `${prefix}/virtual-tours`, label: "Virtual Tours" });
 
 const tourPage = sorted.find((p) => /tour|contact|schedule/i.test(p.slug));
-const tourHref = tourPage && multiPage ? `${prefix}/${tourPage.slug}` : "#schedule-a-tour";
+const tourHref = tourPage && multiPage ? `${prefix}/${tourPage.slug}` : `${prefix}/#schedule-a-tour`;
 ---
 
 <header class="site-header" class:list={{ overlay: transparent }} data-site-header>
@@ -39,6 +43,7 @@ const tourHref = tourPage && multiPage ? `${prefix}/${tourPage.slug}` : "#schedu
     </nav>
     <div class="actions">
       {phone && <a href={phoneHref} class="phone">{phone}</a>}
+      {portalUrl && <a href={portalUrl} class="btn btn--secondary portal">Resident Portal</a>}
       <a href={tourHref} class="btn">Schedule a Tour</a>
       <button class="menu-toggle" aria-label="Menu" aria-expanded="false">
         <i data-lucide="menu" style="width:24px;height:24px"></i>
@@ -47,6 +52,7 @@ const tourHref = tourPage && multiPage ? `${prefix}/${tourPage.slug}` : "#schedu
   </div>
   <nav class="mobile-nav" aria-label="Main mobile" hidden>
     {navLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+    {portalUrl && <a href={portalUrl}>Resident Portal</a>}
     {phone && <a href={phoneHref}>{phone}</a>}
   </nav>
 </header>
@@ -156,10 +162,22 @@ const tourHref = tourPage && multiPage ? `${prefix}/${tourPage.slug}` : "#schedu
     border-color: var(--white);
   }
 
+  .site-header.overlay:not(.is-solid) :global(.btn--secondary) {
+    background: transparent;
+    border-color: rgba(250, 248, 245, 0.55);
+    color: var(--cream-50);
+  }
+
+  .site-header.overlay:not(.is-solid) :global(.btn--secondary:hover) {
+    background: rgba(250, 248, 245, 0.12);
+    border-color: var(--cream-50);
+    color: var(--cream-50);
+  }
+
   .actions {
     display: flex;
     align-items: center;
-    gap: 18px;
+    gap: 14px;
   }
 
   .menu-toggle {
@@ -185,6 +203,12 @@ const tourHref = tourPage && multiPage ? `${prefix}/${tourPage.slug}` : "#schedu
     font-weight: var(--weight-semibold);
     color: var(--navy-800);
     padding: 10px 0;
+  }
+
+  @media (max-width: 1180px) {
+    .portal {
+      display: none;
+    }
   }
 
   @media (max-width: 920px) {

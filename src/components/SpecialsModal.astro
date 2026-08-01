@@ -28,7 +28,7 @@ const sessionKey = special ? `landry-special-${special.title}` : "";
           <i data-lucide="x" style="width:20px;height:20px" />
         </button>
         {special.display_mode === "image" && special.image ? (
-          <a href="#schedule-a-tour" data-special-cta class="image-link">
+          <a href="/#schedule-a-tour" data-special-cta class="image-link">
             <img src={special.image.url} alt={special.image.alt || special.title} />
           </a>
         ) : (
@@ -45,7 +45,7 @@ const sessionKey = special ? `landry-special-${special.title}` : "";
               <h3>{special.title}</h3>
               {special.description && <p>{special.description}</p>}
               {special.floor_plan && <span class="tag">{special.floor_plan.name}</span>}
-              <a href="#schedule-a-tour" data-special-cta class="btn btn--lg cta">
+              <a href="/#schedule-a-tour" data-special-cta class="btn btn--lg cta">
                 Book a Tour
               </a>
               {special.disclaimer && <p class="disclaimer">{special.disclaimer}</p>}
