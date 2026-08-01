@@ -4,6 +4,7 @@ import type { Anchor } from "../lib/anchors";
 import SiteHeader from "../components/SiteHeader.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import SpecialsModal from "../components/SpecialsModal.astro";
+import TourSheet from "../components/TourSheet.astro";
 import "../styles/global.css";
 
 interface Props {
@@ -181,6 +182,7 @@ const heroFirst = /hero/.test(page?.sections?.[0]?.type ?? "");
     </main>
     <SiteFooter globals={globals} pages={pages} locale={locale} anchors={anchors} />
     <SpecialsModal specials={specials} />
+    <TourSheet globals={globals} />
 
     <script is:inline set:html={`window.lucide&&window.lucide.createIcons();`}></script>
     {/* LucidOS AI leasing chat — renders only when enabled for the org */}

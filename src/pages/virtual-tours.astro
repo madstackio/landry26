@@ -56,8 +56,26 @@ const cards = TOURS.map((t) => {
     thumb: `https://my.matterport.com/api/v2/player/models/${t.id}/thumb/`,
     rent: plan?.starting_rent ?? null,
     available: plan?.available_count ?? 0,
+    availableFrom: plan?.available_from ?? null,
+    description: plan?.description || null,
+    features: plan?.features ?? [],
   };
 });
+
+function availabilityLine(c: (typeof cards)[number]) {
+  if (!c.available) return "None open right now — call for the latest availability";
+  const homes = c.available === 1 ? "1 home" : `${c.available} homes`;
+  if (!c.availableFrom || c.availableFrom === "now") return `${homes} available now`;
+  try {
+    const d = new Date(c.availableFrom + "T12:00:00");
+    return `${homes} available from ${new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(d)}`;
+  } catch {
+    return `${homes} available`;
+  }
+}
+
+const phone = globals.contact?.phone ?? null;
+const phoneHref = phone ? `tel:${phone.replace(/[^\d+]/g, "")}` : null;
 
 const meta: Page = {
   slug: "virtual-tours",
@@ -119,32 +137,80 @@ const meta: Page = {
         ))
       }
     </div>
-    <div class="container cta-band">
+  </section>
+
+  {/* Flush band above the footer, one shade lighter than the footer navy */}
+  <div class="cta-band">
+    <div class="container cta-inner">
       <div>
         <h2>Prefer the real thing?</h2>
         <p>Twenty minutes, no pressure, same-day when available.</p>
       </div>
-      <a href="/#schedule-a-tour" class="btn btn--lg">Schedule a Tour</a>
+      <a href="/#schedule-a-tour" class="btn btn--lg btn--inverse">Schedule a Tour</a>
     </div>
-  </section>
+  </div>
 
   <div class="tour-modal" data-tour-modal role="dialog" aria-modal="true" aria-label="3D tour" hidden>
-    <div class="modal-shell">
-      <div class="modal-bar">
-        <span class="modal-title" data-tour-title>3D Tour</span>
+    <div class="frame-area">
+      <iframe
+        data-tour-frame
+        title="Matterport 3D tour"
+        allow="xr-spatial-tracking; fullscreen; vr"
+        allowfullscreen
+      ></iframe>
+    </div>
+    <aside class="panel">
+      <div class="panel-top">
+        <span class="eyebrow panel-eyebrow">3D Virtual Tour</span>
         <button class="modal-close" data-tour-close aria-label="Close tour">
           <i data-lucide="x" style="width:20px;height:20px"></i>
         </button>
       </div>
-      <div class="frame-wrap">
-        <iframe
-          data-tour-frame
-          title="Matterport 3D tour"
-          allow="xr-spatial-tracking; fullscreen; vr"
-          allowfullscreen
-        ></iframe>
-      </div>
-    </div>
+      {
+        cards.map((c) => (
+          <div class="panel-body" data-tour-panel={c.id} hidden>
+            <h2>{c.name}</h2>
+            <p class="panel-specs">{c.specs}</p>
+            <div class="panel-price">
+              {c.rent ? (
+                <>
+                  From {money.format(c.rent)}
+                  <span class="permo">/mo</span>
+                </>
+              ) : (
+                "Call for pricing"
+              )}
+            </div>
+            <div class="panel-avail" class:list={{ none: !c.available }}>
+              {availabilityLine(c)}
+            </div>
+            {c.description && <p class="panel-desc">{c.description}</p>}
+            {c.features.length > 0 && (
+              <ul class="panel-features">
+                {c.features.slice(0, 8).map((f) => (
+                  <li>
+                    <i data-lucide="check" style="width:15px;height:15px" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div class="panel-ctas">
+              <a href="/#schedule-a-tour" class="btn btn--lg btn--inverse">
+                Schedule a Tour
+              </a>
+              {phone && (
+                <a href={phoneHref} class="panel-phone">
+                  <i data-lucide="phone" style="width:16px;height:16px" />
+                  {phone}
+                </a>
+              )}
+            </div>
+          </div>
+        ))
+      }
+      <p class="panel-hint">Use your mouse or finger to walk room to room.</p>
+    </aside>
   </div>
 </Base>
 
@@ -294,10 +360,11 @@ const meta: Page = {
   }
 
   .cta-band {
-    margin-top: 72px;
-    background: var(--navy-900);
-    border-radius: var(--radius-lg);
-    padding: 48px 56px;
+    background: var(--navy-800);
+    padding: 56px 0;
+  }
+
+  .cta-inner {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -317,16 +384,14 @@ const meta: Page = {
     margin: 0;
   }
 
-  /* Tour modal */
+  /* Tour modal — full-bleed takeover with a details rail */
   .tour-modal {
     position: fixed;
     inset: 0;
     z-index: 100;
-    background: rgba(11, 44, 64, 0.78);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
+    background: var(--navy-900);
+    display: grid;
+    grid-template-columns: 1fr 380px;
     opacity: 0;
     transition: opacity 250ms ease;
   }
@@ -339,61 +404,209 @@ const meta: Page = {
     display: none;
   }
 
-  .modal-shell {
-    width: min(1200px, 100%);
-    background: var(--charcoal-900);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    box-shadow: var(--shadow-raised);
-    transform: translateY(16px);
-    transition: transform 250ms var(--ease-standard);
+  .frame-area {
+    min-width: 0;
+    min-height: 0;
   }
 
-  .tour-modal.is-open .modal-shell {
-    transform: none;
+  .frame-area iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
   }
 
-  .modal-bar {
+  .panel {
+    background: var(--navy-900);
+    color: var(--navy-100);
+    display: flex;
+    flex-direction: column;
+    padding: 24px 32px 28px;
+    overflow-y: auto;
+    border-left: 1px solid rgba(250, 248, 245, 0.12);
+  }
+
+  .panel-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    padding: 12px 12px 12px 20px;
+    margin-bottom: 24px;
   }
 
-  .modal-title {
-    font-family: var(--font-display);
-    font-size: 18px;
-    color: var(--cream-50);
+  .panel-eyebrow {
+    color: var(--navy-150);
   }
 
   .modal-close {
     background: rgba(250, 248, 245, 0.1);
     border: none;
     border-radius: 50%;
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     color: var(--cream-50);
+    flex: none;
   }
 
   .modal-close:hover {
     background: rgba(250, 248, 245, 0.22);
   }
 
-  .frame-wrap {
-    aspect-ratio: 16 / 9;
-    max-height: calc(100vh - 120px);
+  .panel-body[hidden] {
+    display: none;
   }
 
-  .frame-wrap iframe {
+  .panel-body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    flex: 1;
+  }
+
+  .panel-body h2 {
+    font-family: var(--font-display);
+    font-size: 40px;
+    color: var(--cream-50);
+    margin: 0;
+  }
+
+  .panel-specs {
+    font-size: 16px;
+    color: var(--navy-100);
+    margin: 0;
+  }
+
+  .panel-price {
+    font-weight: var(--weight-bold);
+    color: var(--cream-50);
+    font-size: 24px;
+  }
+
+  .panel-price .permo {
+    font-weight: var(--weight-regular);
+    color: var(--navy-150);
+    font-size: 14px;
+  }
+
+  .panel-avail {
+    font-size: 13px;
+    font-weight: var(--weight-semibold);
+    color: var(--success-100);
+    background: rgba(61, 122, 78, 0.45);
+    border-radius: var(--radius-pill);
+    padding: 6px 14px;
+  }
+
+  .panel-avail.none {
+    color: var(--warning-100);
+    background: rgba(169, 120, 23, 0.4);
+  }
+
+  .panel-desc {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--navy-100);
+    margin: 6px 0 0;
+  }
+
+  .panel-features {
+    list-style: none;
+    padding: 0;
+    margin: 6px 0 0;
+    display: grid;
+    gap: 8px;
     width: 100%;
-    height: 100%;
-    border: none;
-    display: block;
+  }
+
+  .panel-features li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--navy-100);
+  }
+
+  .panel-features li :global(svg) {
+    color: var(--navy-150);
+    flex: none;
+  }
+
+  .panel-ctas {
+    margin-top: auto;
+    padding-top: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    align-self: stretch;
+    align-items: center;
+  }
+
+  .panel-ctas .btn {
+    align-self: stretch;
+  }
+
+  .panel-phone {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--cream-50);
+    font-weight: var(--weight-semibold);
+    font-size: 15px;
+  }
+
+  .panel-phone:hover {
+    color: var(--navy-150);
+  }
+
+  .panel-hint {
+    font-size: 12px;
+    color: var(--navy-300);
+    margin: 18px 0 0;
+    text-align: center;
+  }
+
+  @media (max-width: 900px) {
+    .tour-modal {
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr auto;
+    }
+
+    .frame-area {
+      min-height: 0;
+    }
+
+    .panel {
+      border-left: none;
+      border-top: 1px solid rgba(250, 248, 245, 0.12);
+      max-height: 45vh;
+      padding: 18px 24px 22px;
+    }
+
+    .panel-top {
+      margin-bottom: 12px;
+    }
+
+    .panel-body h2 {
+      font-size: 30px;
+    }
+
+    .panel-desc,
+    .panel-features {
+      display: none;
+    }
+
+    .panel-hint {
+      display: none;
+    }
+
+    .panel-ctas {
+      padding-top: 16px;
+    }
   }
 
   @media (max-width: 640px) {
@@ -404,17 +617,12 @@ const meta: Page = {
     .cta-band {
       padding: 36px 28px;
     }
-
-    .frame-wrap {
-      aspect-ratio: 3 / 4;
-    }
   }
 </style>
 
 <script>
   const modal = document.querySelector<HTMLElement>("[data-tour-modal]");
   const frame = modal?.querySelector<HTMLIFrameElement>("[data-tour-frame]");
-  const titleEl = modal?.querySelector<HTMLElement>("[data-tour-title]");
 
   const close = () => {
     if (!modal) return;
@@ -431,7 +639,10 @@ const meta: Page = {
     card.addEventListener("click", () => {
       if (!modal || !frame) return;
       frame.src = `https://my.matterport.com/show/?m=${card.dataset.tour}&play=1`;
-      if (titleEl) titleEl.textContent = `${card.dataset.tourName} — 3D Tour`;
+      modal.querySelectorAll<HTMLElement>("[data-tour-panel]").forEach((p) => {
+        if (p.dataset.tourPanel === card.dataset.tour) p.removeAttribute("hidden");
+        else p.setAttribute("hidden", "");
+      });
       modal.removeAttribute("hidden");
       requestAnimationFrame(() => modal.classList.add("is-open"));
       document.body.style.overflow = "hidden";
@@ -441,9 +652,6 @@ const meta: Page = {
   });
 
   modal?.querySelector("[data-tour-close]")?.addEventListener("click", close);
-  modal?.addEventListener("click", (e) => {
-    if (e.target === modal) close();
-  });
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && modal && !modal.hasAttribute("hidden")) close();
   });

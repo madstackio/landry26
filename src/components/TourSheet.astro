@@ -1,0 +1,305 @@
+---
+import type { Globals } from "../lib/cms";
+
+interface Props {
+  globals: Globals;
+}
+
+// Slide-in tour sheet: on pages without the homepage form section, any
+// "Schedule a Tour" link opens this panel instead of dead-anchoring.
+const { globals } = Astro.props;
+const contact = globals.contact ?? {};
+const phone = contact.phone ?? null;
+const phoneHref = phone ? `tel:${phone.replace(/[^\d+]/g, "")}` : null;
+const email = contact.email ?? null;
+
+const addressLines = [
+  contact.address_line1,
+  contact.address_line2,
+  [contact.city, contact.state].filter(Boolean).join(", ") + (contact.zip ? ` ${contact.zip}` : ""),
+].filter((l) => l && l.trim());
+
+const officeHours = (contact.office_hours ?? "")
+  .split(/\r?\n/)
+  .map((l) => l.trim())
+  .filter(Boolean);
+---
+
+<div class="sheet-overlay" data-tour-sheet hidden>
+  <aside class="sheet" role="dialog" aria-modal="true" aria-label="Schedule a tour">
+    <div class="sheet-top">
+      <span class="eyebrow">Schedule a Private Tour</span>
+      <button class="sheet-close" data-sheet-close aria-label="Close">
+        <i data-lucide="x" style="width:20px;height:20px"></i>
+      </button>
+    </div>
+    <h2>See it in person.</h2>
+    <p class="sheet-copy">
+      Twenty minutes, no pressure, same-day when available. We'll have the keys ready and the
+      coffee on.
+    </p>
+    <div class="sheet-map" data-sheet-map></div>
+    <div class="facts">
+      {
+        addressLines.length > 0 && (
+          <div class="fact">
+            <span class="fact-icon">
+              <i data-lucide="map-pin" style="width:19px;height:19px" />
+            </span>
+            <span>{addressLines.join(", ")}</span>
+          </div>
+        )
+      }
+      {
+        phone && (
+          <div class="fact">
+            <span class="fact-icon">
+              <i data-lucide="phone" style="width:19px;height:19px" />
+            </span>
+            <a href={phoneHref}>{phone}</a>
+          </div>
+        )
+      }
+      {
+        email && (
+          <div class="fact">
+            <span class="fact-icon">
+              <i data-lucide="mail" style="width:19px;height:19px" />
+            </span>
+            <a href={`mailto:${email}`}>{email}</a>
+          </div>
+        )
+      }
+      {
+        officeHours.length > 0 && (
+          <div class="fact">
+            <span class="fact-icon">
+              <i data-lucide="clock" style="width:19px;height:19px" />
+            </span>
+            <span class="hours">
+              {officeHours.map((line) => (
+                <span>{line}</span>
+              ))}
+            </span>
+          </div>
+        )
+      }
+    </div>
+    <div class="sheet-ctas">
+      <a href="/#schedule-a-tour" class="btn btn--lg">Request a Tour Time</a>
+      {phone && <a href={phoneHref} class="btn btn--lg btn--secondary">Call the Office</a>}
+    </div>
+  </aside>
+</div>
+
+<style>
+  .sheet-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 110;
+    background: rgba(11, 44, 64, 0.55);
+    opacity: 0;
+    transition: opacity 250ms ease;
+  }
+
+  .sheet-overlay.is-open {
+    opacity: 1;
+  }
+
+  .sheet-overlay[hidden] {
+    display: none;
+  }
+
+  .sheet {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(440px, 100vw);
+    background: var(--cream-50);
+    box-shadow: var(--shadow-raised);
+    padding: 26px 34px 34px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 300ms var(--ease-standard);
+  }
+
+  .sheet-overlay.is-open .sheet {
+    transform: none;
+  }
+
+  .sheet-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+
+  .sheet-close {
+    background: var(--cream-100);
+    border: 1px solid var(--border-subtle);
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--navy-800);
+    flex: none;
+  }
+
+  .sheet-close:hover {
+    background: var(--white);
+  }
+
+  h2 {
+    font-size: 38px;
+    margin: 0 0 10px;
+  }
+
+  .sheet-copy {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--charcoal-700);
+    margin: 0 0 22px;
+  }
+
+  .sheet-map {
+    width: 100%;
+    height: 190px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--cream-200);
+    overflow: hidden;
+    position: relative;
+    z-index: 0;
+    background: var(--navy-100);
+    flex: none;
+  }
+
+  .facts {
+    display: grid;
+    gap: 14px;
+    font-size: 15px;
+    color: var(--charcoal-700);
+    margin-top: 22px;
+  }
+
+  .fact {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .fact a {
+    color: var(--navy-700);
+    font-weight: var(--weight-semibold);
+  }
+
+  .fact-icon {
+    color: var(--navy-300);
+    flex: none;
+    margin-top: 1px;
+    display: inline-flex;
+  }
+
+  .hours {
+    display: grid;
+    gap: 4px;
+  }
+
+  .hours span {
+    display: block;
+  }
+
+  .sheet-ctas {
+    margin-top: auto;
+    padding-top: 28px;
+    display: grid;
+    gap: 12px;
+  }
+</style>
+
+<script>
+  const overlay = document.querySelector<HTMLElement>("[data-tour-sheet]");
+  let mapReady = false;
+
+  const initMap = () => {
+    if (mapReady || !overlay) return;
+    mapReady = true;
+    const el = overlay.querySelector<HTMLElement>("[data-sheet-map]");
+    if (!el) return;
+    const start = () => {
+      const L = (window as any).L;
+      if (!L) return setTimeout(start, 100);
+      // The Landry — 2505 Thomason Cir, Arlington, TX 76006
+      const LAT = 32.77587;
+      const LNG = -97.066059;
+      const map = L.map(el, { scrollWheelZoom: false, fadeAnimation: false }).setView(
+        [LAT, LNG],
+        13
+      );
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "© OpenStreetMap contributors",
+      }).addTo(map);
+      const icon = L.divIcon({
+        className: "",
+        html: '<div style="width:18px;height:18px;border-radius:50%;background:#154766;border:3px solid #FAF8F5;box-shadow:0 2px 8px rgba(11,44,64,.45)"></div>',
+        iconSize: [18, 18],
+        iconAnchor: [9, 9],
+      });
+      L.marker([LAT, LNG], { icon }).addTo(map);
+      setTimeout(() => map.invalidateSize(), 320);
+    };
+    if (!(window as any).L && !document.querySelector('link[href*="leaflet"]')) {
+      const css = document.createElement("link");
+      css.rel = "stylesheet";
+      css.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+      document.head.appendChild(css);
+      const js = document.createElement("script");
+      js.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+      document.head.appendChild(js);
+    }
+    start();
+  };
+
+  const openSheet = () => {
+    if (!overlay) return;
+    overlay.removeAttribute("hidden");
+    requestAnimationFrame(() => overlay.classList.add("is-open"));
+    document.body.style.overflow = "hidden";
+    (window as any).lucide?.createIcons();
+    initMap();
+    overlay.querySelector<HTMLButtonElement>("[data-sheet-close]")?.focus();
+  };
+
+  const closeSheet = () => {
+    if (!overlay) return;
+    overlay.classList.remove("is-open");
+    document.body.style.overflow = "";
+    setTimeout(() => overlay.setAttribute("hidden", ""), 300);
+  };
+
+  // Intercept tour links only when this page has no tour form to scroll to;
+  // links inside the sheet itself always navigate.
+  document.addEventListener("click", (e) => {
+    const link = (e.target as HTMLElement).closest<HTMLAnchorElement>(
+      'a[href*="#schedule-a-tour"]'
+    );
+    if (!link || link.closest("[data-tour-sheet]")) return;
+    if (document.getElementById("schedule-a-tour")) return;
+    e.preventDefault();
+    openSheet();
+  });
+
+  overlay?.querySelector("[data-sheet-close]")?.addEventListener("click", closeSheet);
+  overlay?.addEventListener("click", (e) => {
+    if (e.target === overlay) closeSheet();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && overlay && !overlay.hasAttribute("hidden")) closeSheet();
+  });
+</script>
